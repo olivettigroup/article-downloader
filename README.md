@@ -4,7 +4,7 @@ article-downloader
 Uses publisher APIs (and sometime direct download) to programmatically retrieve large amounts of scientific journal articles for text mining.
 
 ##Installation
-Use `pip install article-downloader` in bash.
+Use `pip install articledownloader` in bash.
 
 ##Usage
 Use the `ArticleDownloader` class to download articles en masse. Currently supported publishers are Elsevier and RSC. You'll need an API key, and please respect each publisher's terms of use.
@@ -16,13 +16,13 @@ You can find articles in two ways: You can load in a text file with a list of DO
 ##Examples
 
 ###Downloading a single article
-    from article_downloader import ArticleDownloader
+    from articledownloader.articledownloader import ArticleDownloader
     downloader = ArticleDownloader()
 
     downloader.get_pdf_from_pii('xxxxxxx')
 
 ###Downloading many articles from a list of DOIs/PIIs
-    from article_downloader import ArticleDownloader
+    from articledownloader.articledownloader import ArticleDownloader
     downloader = ArticleDownloader()
 
     downloader.get_piis_from_file('path_to_file')
@@ -30,7 +30,7 @@ You can find articles in two ways: You can load in a text file with a list of DO
       downloader.get_pdf_from_pii(pii)
 
 ###Using search queries to find DOIs/PIIs
-    from article_downloader import ArticleDownloader
+    from articledownloader.articledownloader import ArticleDownloader
     downloader = ArticleDownloader()
 
     #grab up to 5 articles per search

@@ -1,7 +1,7 @@
 from distutils.core import setup
 setup(
-name = 'article-downloader',
-packages = ['article-downloader'], # this must be the same as the name above
+name = 'articledownloader',
+packages = ['articledownloader'], # this must be the same as the name above
 version = '0.1',
 description = 'A class for downloading scientific journal articles',
 author = 'Edward Kim',
