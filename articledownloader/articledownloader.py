@@ -176,29 +176,3 @@ class ArticleDownloader:
             query += '&count=' + str(count)
 
           self.queries.append(query)
-
-
-
-if __name__ == '__main__':
-
-  downloader = ArticleDownloader(headers={'X-ELS-APIKEY': os.environ.get('API_KEY')})
-
-  '''Use this to download PDFs from a file containing a list of PIIs'''
-  #downloader.get_piis_from_file(os.path.dirname(__file__) + '/piis.txt')
-  # for pii in downloader.piis:
-  #   downloader.get_pdf_from_pii(pii)
-
-  '''Use this to load search queries from a CSV'''
-  downloader.load_queries_from_csv(os.path.dirname(__file__) + '/custom_search.csv', limit=1000, start=2, count=500)
-  for i, query in enumerate(downloader.queries):
-    print 'Search #' + str(i+1) + ': ' + query
-
-    downloader.get_piis_dois_from_search(query, mode='elsevier')
-      # for xml, pii in zip(downloader.xmls, downloader.piis):
-      #   downloader.save_xml_data(xml, os.path.dirname(__file__) + "/xmls/" + pii + '.xml')
-    else:
-      print 'No PIIs or DOIs retrieved!'
-
-  for pii in downloader.piis:
-    downloader.get_pdf_from_pii(pii)
-    #downloader.download_article(pii=pii, regex=False, mode='els', article_dir='/custom_search_pdfs/')
