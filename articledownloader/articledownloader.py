@@ -8,6 +8,7 @@ from HTMLParser import HTMLParser
 
 class MyHTMLParser(HTMLParser):
 
+    #RSC scraping implementation
     def handle_starttag(self, tag, attrs):
       if tag == 'a' and ('id', 'pdfLink') in attrs:
         for attr in attrs:
@@ -16,22 +17,24 @@ class MyHTMLParser(HTMLParser):
 
 class ArticleDownloader:
 
-  def __init__(self,  article_path='/default_path', headers=None):
+  def __init__(self,  article_path='/default_path', api_key=None):
     self.article_path = article_path
-    self.headers = headers
+    self.headers = {'X-ELS-APIKEY': api_key}
     self.piis = []
     self.dois = []
     self.xmls = []
     self.queries = []
+    self.api_key = api_key
 
   def get_piis_dois_from_search(self, query, mode='elsevier'):
-    self.piis = []
-    self.dois = []
-    self.xmls = []
     if mode == 'elsevier':
       url = 'http://api.elsevier.com/content/search/scidir?query=' + query
     elif mode == 'rsc':
       url = 'http://search.crossref.org/dois?q=' + query
+    elif mode == 'nature':
+      url = 'http://api.nature.com/content/opensearch/request?query=' + query + '&api_key=' + self.api_key
+    elif mode == 'springer':
+      url = 'http://api.springer.com/metadata/pam?q=' + query + '&api_key=' + self.api_key
     else:
       print 'Valid mode required!'
       return -1
@@ -41,14 +44,17 @@ class ArticleDownloader:
 
       if mode == 'elsevier':
         for article in json_response['search-results']['entry']:
-          self.piis.append(article['pii'])
+          if article['pii'] not in self.piis:
+            self.piis.append(article['pii'])
         return len(self.piis)
+
       elif mode == 'rsc':
         for article in json_response:
           doi = article['doi']
           if doi.find('10.1039') > 0: #RSC DOI code
             doi = doi.replace('http://dx.doi.org/10.1039/', '')
-            self.dois.append(doi)
+            if doi not in self.dois:
+              self.dois.append(doi)
         return len(self.dois)
 
     except requests.exceptions.ConnectionError:
@@ -154,7 +160,6 @@ class ArticleDownloader:
           pass
 
         else:
-
           #Build search query (assume 1st column is article titles)
           title = re.sub('\[\]\=\,\.0-9\>\<\:]', '', line[0])
           title = re.sub('\(.*?\)', '', title)
@@ -188,11 +193,12 @@ if __name__ == '__main__':
   for i, query in enumerate(downloader.queries):
     print 'Search #' + str(i+1) + ': ' + query
 
-    if downloader.get_piis_dois_from_search(query, mode='elsevier') > 0:
+    downloader.get_piis_dois_from_search(query, mode='elsevier')
       # for xml, pii in zip(downloader.xmls, downloader.piis):
       #   downloader.save_xml_data(xml, os.path.dirname(__file__) + "/xmls/" + pii + '.xml')
-      for pii in downloader.piis:
-        downloader.get_pdf_from_pii(pii)
-        #downloader.download_article(pii=pii, regex=False, mode='els', article_dir='/custom_search_pdfs/')
     else:
       print 'No PIIs or DOIs retrieved!'
+
+  for pii in downloader.piis:
+    downloader.get_pdf_from_pii(pii)
+    #downloader.download_article(pii=pii, regex=False, mode='els', article_dir='/custom_search_pdfs/')
