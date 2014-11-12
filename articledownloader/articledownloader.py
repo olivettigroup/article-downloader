@@ -1,4 +1,3 @@
-import os
 import requests
 import re
 import json
@@ -17,8 +16,7 @@ class MyHTMLParser(HTMLParser):
 
 class ArticleDownloader:
 
-  def __init__(self,  article_path='/default_path', api_key=None):
-    self.article_path = article_path
+  def __init__(self, api_key):
     self.headers = {'X-ELS-APIKEY': api_key}
     self.piis = []
     self.dois = []
@@ -26,7 +24,7 @@ class ArticleDownloader:
     self.queries = []
     self.api_key = api_key
 
-  def get_piis_dois_from_search(self, query, mode='elsevier'):
+  def get_piis_dois_from_search(self, query, mode):
     if mode == 'elsevier':
       url = 'http://api.elsevier.com/content/search/scidir?query=' + query
     elif mode == 'rsc':
@@ -36,11 +34,13 @@ class ArticleDownloader:
     elif mode == 'springer':
       url = 'http://api.springer.com/metadata/pam?q=' + query + '&api_key=' + self.api_key
     else:
-      print 'Valid mode required!'
+      print 'Valid mode required! Failed to get PIIs/DOIs from search.'
       return -1
     try:
+      self.headers['Accept'] = 'application/json'
       response = requests.get(url, headers=self.headers).content
       json_response = json.loads(response)
+      print json_response
 
       if mode == 'elsevier':
         for article in json_response['search-results']['entry']:
@@ -71,7 +71,8 @@ class ArticleDownloader:
     with open(file) as f:
       for pii in f:
         pii = re.sub('[\-\(\)]', '', pii)
-        self.piis.append(pii)
+        if pii not in self.piis:
+          self.piis.append(pii)
 
   def get_xml_from_pii(self, pii):
     try:
@@ -83,7 +84,7 @@ class ArticleDownloader:
       print 'Waiting 1000 seconds before trying again'
       time.sleep(1000) #API request limit exceeeded; wait and try again
 
-  def get_pdf_from_pii(self, pii, directory=os.path.dirname(__file__)+'/pdfs/'):
+  def get_pdf_from_pii(self, pii, directory):
     try:
       name = re.sub('[\(\)]', '', pii)
       self.article_path = directory + name
@@ -103,7 +104,7 @@ class ArticleDownloader:
       print 'Waiting 1000 seconds before trying again'
       time.sleep(1000) #API request limit exceeeded; wait and try again
 
-  def download_article(self, pii=None, doi=None, regex=True, mode='elsevier', article_dir='/articles/'):
+  def scrape_article(self,  mode, directory, pii=None, doi=None, regex=True):
     try:
       if mode == 'elsevier':
         url = 'http://www.sciencedirect.com/science/article/pii/' + pii + '/'
@@ -124,7 +125,7 @@ class ArticleDownloader:
     else:
       name = doi
 
-    self.article_path = os.path.dirname(__file__) + article_dir + name
+    self.article_path = directory + name
     self.article_path += '.pdf'
 
     if regex:
@@ -149,7 +150,7 @@ class ArticleDownloader:
     with open(path, 'wb') as f:
       f.write(xml)
 
-  def load_queries_from_csv(self, csvf, limit=3, start=0, count=1):
+  def load_queries_from_csv(self, csvf, limit=500, start=0, count=1):
     with open(csvf, 'rU') as f:
       reader = csv.reader(f, delimiter=',')
       for i, line in enumerate(reader):
@@ -172,7 +173,7 @@ class ArticleDownloader:
 
           query = title
 
-          if not count == 0:
+          if count > 0:
             query += '&count=' + str(count)
 
           self.queries.append(query)
