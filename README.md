@@ -5,7 +5,7 @@ Uses publisher APIs (and sometime direct download) to programmatically retrieve 
 Primarily built for Elsevier's text mining API; support for other APIs is gradually being added.
 
 ##Installation
-Use `pip install articledownloader` in bash.
+Use `pip install articledownloader`.
 
 ##Usage
 Use the `ArticleDownloader` class to download articles en masse. Currently supported publishers are Elsevier and RSC. You'll need an API key, and please respect each publisher's terms of use.
@@ -18,9 +18,9 @@ You can find articles in two ways: You can load in a text file with a list of DO
 
 ###Downloading a single article
     from articledownloader.articledownloader import ArticleDownloader
-    downloader = ArticleDownloader(api_key='xxxxxx')
+    downloader = ArticleDownloader('your_API_key')
 
-    downloader.get_pdf_from_pii('xxxxxxx', directory='path_to_save/')
+    downloader.get_pdf_from_pii('target_pii', '/path_to_save/')
 
 ###Downloading many articles from a list of PIIs
 PII File:
@@ -35,11 +35,11 @@ PII File:
 Python:
 
     from articledownloader.articledownloader import ArticleDownloader
-    downloader = ArticleDownloader(api_key='xxxxxx')
+    downloader = ArticleDownloader('your_API_key')
 
-    downloader.get_piis_from_file('path_to_pii_file')
+    downloader.get_piis_from_file('/path_to_pii_file')
     for pii in downloader.piis:
-      downloader.get_pdf_from_pii(pii, directory='path_to_save/')
+      downloader.get_pdf_from_pii(pii, '/directory_to_save_pdfs/')
 
 ###Using search queries to find DOIs/PIIs
 CSV file:
@@ -54,13 +54,13 @@ CSV file:
 Python:
 
     from articledownloader.articledownloader import ArticleDownloader
-    downloader = ArticleDownloader(api_key='xxxxxx')
+    downloader = ArticleDownloader('your_API_key')
 
     #grab up to 5 articles per search
-    downloader.downloader.load_queries_from_csv('path_to_csv_file', count=5)
+    downloader.load_queries_from_csv('path_to_csv_file', count=5)
 
     for query in downloader.queries:
       downloader.get_piis_dois_from_search(query, mode='elsevier')
 
     for pii in downloader.piis:
-      downloader.get_pdf_from_pii(pii, directory='path_to_save/')
+      downloader.get_pdf_from_pii(pii, '/directory_to_save_pdfs/')
