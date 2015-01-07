@@ -1,8 +1,8 @@
 import requests
 import re
 import json
-import csv
-import time
+from csv import reader
+from time import sleep
 from HTMLParser import HTMLParser
 
 class MyHTMLParser(HTMLParser):
@@ -40,12 +40,13 @@ class ArticleDownloader:
       self.headers['Accept'] = 'application/json'
       response = requests.get(url, headers=self.headers).content
       json_response = json.loads(response)
-      print json_response
 
       if mode == 'elsevier':
         for article in json_response['search-results']['entry']:
           if article['pii'] not in self.piis:
             self.piis.append(article['pii'])
+
+        self.piis = list(set(self.piis)) #Guarantee uniqueness of IDs
         return len(self.piis)
 
       elif mode == 'rsc':
@@ -55,12 +56,13 @@ class ArticleDownloader:
             doi = doi.replace('http://dx.doi.org/10.1039/', '')
             if doi not in self.dois:
               self.dois.append(doi)
+        self.dois = list(set(self.dois)) #Guarantee uniqueness of IDs
         return len(self.dois)
 
     except requests.exceptions.ConnectionError:
       print '***API search limit exceeded!***'
       print 'Waiting 1000 seconds before trying again'
-      time.sleep(1000) #API request limit exceeeded; wait and try again
+      sleep(1000) #API request limit exceeeded; wait and try again
       return -1
     except KeyError:
       print 'Failed search query!'
@@ -82,11 +84,12 @@ class ArticleDownloader:
     except requests.exceptions.ConnectionError:
       print '***API download limit exceeded!***'
       print 'Waiting 1000 seconds before trying again'
-      time.sleep(1000) #API request limit exceeeded; wait and try again
+      sleep(1000) #API request limit exceeded; wait and try again
 
   def get_pdf_from_pii(self, pii, directory):
     try:
       name = re.sub('[\(\)]', '', pii)
+      name = re.sub('\s+', '', name)
       self.article_path = directory + name
       self.article_path += '.pdf'
 
@@ -102,7 +105,7 @@ class ArticleDownloader:
     except requests.exceptions.ConnectionError:
       print '***API download limit exceeded!***'
       print 'Waiting 1000 seconds before trying again'
-      time.sleep(1000) #API request limit exceeeded; wait and try again
+      sleep(1000) #API request limit exceeded; wait and try again
 
   def scrape_article(self,  mode, directory, pii=None, doi=None, regex=True):
     try:
@@ -152,15 +155,13 @@ class ArticleDownloader:
 
   def load_queries_from_csv(self, csvf, limit=500, start=0, count=1):
     with open(csvf, 'rU') as f:
-      reader = csv.reader(f, delimiter=',')
-      for i, line in enumerate(reader):
+      csvreader = reader(f, delimiter=',')
+      for i, line in enumerate(csvreader):
+        print line
         if i > limit:
           break
 
-        if i < start:
-          pass
-
-        else:
+        if i >= start:
           #Build search query (assume 1st column is article titles)
           title = re.sub('\[\]\=\,\.0-9\>\<\:]', '', line[0])
           title = re.sub('\(.*?\)', '', title)
@@ -173,7 +174,10 @@ class ArticleDownloader:
 
           query = title
 
-          if count > 0:
+          if 0 < count < 100:
             query += '&count=' + str(count)
-
-          self.queries.append(query)
+            self.queries.append(query)
+          elif count > 100:
+            for j in range(0, count, 100):
+              split_query = query + '&count=100&start=' + str(j)
+              self.queries.append(split_query)
