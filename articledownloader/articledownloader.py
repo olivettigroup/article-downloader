@@ -157,7 +157,6 @@ class ArticleDownloader:
     with open(csvf, 'rU') as f:
       csvreader = reader(f, delimiter=',')
       for i, line in enumerate(csvreader):
-        print line
         if i > limit:
           break
 
