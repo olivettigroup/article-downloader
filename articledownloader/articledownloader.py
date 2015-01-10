@@ -65,7 +65,7 @@ class ArticleDownloader:
       sleep(1000) #API request limit exceeeded; wait and try again
       return -1
     except KeyError:
-      print 'Failed search query!'
+      print 'Failed search query: ' + query
       return -1
 
 
@@ -101,7 +101,6 @@ class ArticleDownloader:
         with open(self.article_path, 'wb') as f:
           for chunk in r.iter_content(2048):
               f.write(chunk)
-          print 'Downloaded file successfully!'
     except requests.exceptions.ConnectionError:
       print '***API download limit exceeded!***'
       print 'Waiting 1000 seconds before trying again'
@@ -146,7 +145,6 @@ class ArticleDownloader:
       with open(self.article_path, 'wb') as f:
         for chunk in r.iter_content(2048):
             f.write(chunk)
-        print 'Downloaded file successfully!'
 
   def save_xml_data(self, xml, path):
     print 'Saved XML to: ' + path

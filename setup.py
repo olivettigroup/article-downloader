@@ -2,7 +2,7 @@ from distutils.core import setup
 setup(
 name = 'articledownloader',
 packages = ['articledownloader'], # this must be the same as the name above
-version = '1.3',
+version = '1.4',
 description = 'A class for downloading scientific journal articles',
 author = 'Edward Kim',
 author_email = 'eddotman@gmail.com',
