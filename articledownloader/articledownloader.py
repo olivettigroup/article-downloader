@@ -79,6 +79,7 @@ class ArticleDownloader:
   def get_xml_from_pii(self, pii):
     try:
       xml_url='http://api.elsevier.com/content/article/PII:' + pii + '?view=FULL'
+      self.headers['Accept'] = 'application/xml'
       xml_response = requests.get(xml_url, headers=self.headers).content
       self.xmls.append(xml_response)
     except requests.exceptions.ConnectionError:
