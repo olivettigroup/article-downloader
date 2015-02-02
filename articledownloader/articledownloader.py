@@ -27,7 +27,7 @@ class ArticleDownloader:
   def get_piis_dois_from_search(self, query, mode):
     if mode == 'elsevier':
       url = 'http://api.elsevier.com/content/search/scidir?query=' + query
-    elif mode == 'rsc':
+    elif mode == 'crossref':
       url = 'http://search.crossref.org/dois?q=' + query
     elif mode == 'nature':
       url = 'http://api.nature.com/content/opensearch/request?query=' + query + '&api_key=' + self.api_key
@@ -49,13 +49,11 @@ class ArticleDownloader:
         self.piis = list(set(self.piis)) #Guarantee uniqueness of IDs
         return len(self.piis)
 
-      elif mode == 'rsc':
+      elif mode == 'crossref':
         for article in json_response:
           doi = article['doi']
-          if doi.find('10.1039') > 0: #RSC DOI code
-            doi = doi.replace('http://dx.doi.org/10.1039/', '')
-            if doi not in self.dois:
-              self.dois.append(doi)
+          if doi not in self.dois:
+            self.dois.append(doi)
         self.dois = list(set(self.dois)) #Guarantee uniqueness of IDs
         return len(self.dois)
 
