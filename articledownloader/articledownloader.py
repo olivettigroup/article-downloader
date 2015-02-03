@@ -27,7 +27,7 @@ class ArticleDownloader:
   def get_piis_dois_from_search(self, query, mode):
     if mode == 'elsevier':
       url = 'http://api.elsevier.com/content/search/scidir?query=' + query
-    elif mode == 'crossref':
+    elif mode == 'rsc':
       url = 'http://search.crossref.org/dois?q=' + query
     elif mode == 'nature':
       url = 'http://api.nature.com/content/opensearch/request?query=' + query + '&api_key=' + self.api_key
@@ -49,7 +49,7 @@ class ArticleDownloader:
         self.piis = list(set(self.piis)) #Guarantee uniqueness of IDs
         return len(self.piis)
 
-      elif mode == 'crossref':
+      elif mode == 'rsc':
         for article in json_response:
           doi = article['doi']
           if doi not in self.dois:
@@ -85,25 +85,46 @@ class ArticleDownloader:
       print 'Waiting 1000 seconds before trying again'
       sleep(1000) #API request limit exceeded; wait and try again
 
-  def get_pdf_from_pii(self, pii, directory):
-    try:
-      name = re.sub('[\(\)]', '', pii)
-      name = re.sub('\s+', '', name)
-      self.article_path = directory + name
-      self.article_path += '.pdf'
+  def get_pdfs_from_search(self, query, directory, mode='crossref', rows=500):
+    if mode == 'crossref':
+      search_url = 'http://api.crossref.org/works?filter=has-license:true,has-full-text:true&query=' + query + '&rows=' + str(rows)
+      response = json.loads(requests.get(search_url, headers=self.headers).text)
 
-      pdf_url='http://api.elsevier.com/content/article/PII:' + pii + '?view=FULL'
-      self.headers['Accept'] = 'application/pdf'
+      for item in response["message"]["items"]:
+        doi = re.sub("\/", "", item["DOI"])
+        pdf_url = item["link"][0]["URL"]
+        app_type = item["link"][0]["content-type"]
 
-      r = requests.get(pdf_url, stream=True, headers=self.headers)
-      if r.status_code == 200:
-        with open(self.article_path, 'wb') as f:
-          for chunk in r.iter_content(2048):
-              f.write(chunk)
-    except requests.exceptions.ConnectionError:
-      print '***API download limit exceeded!***'
-      print 'Waiting 1000 seconds before trying again'
-      sleep(1000) #API request limit exceeded; wait and try again
+        if app_type == 'application/pdf':
+          print 'Downloading: ' + pdf_url
+          r = requests.get(pdf_url, stream=True, headers=self.headers)
+          print r
+          if r.status_code == 200:
+            with open(directory + doi + '.pdf' , 'wb') as f:
+              for chunk in r.iter_content(2048):
+                  f.write(chunk)
+
+
+  def get_pdf_from_pii(self, pii, directory, mode='elsevier'):
+    if mode == 'elsevier':
+      try:
+        name = re.sub('[\(\)]', '', pii)
+        name = re.sub('\s+', '', name)
+        self.article_path = directory + name
+        self.article_path += '.pdf'
+
+        pdf_url='http://api.elsevier.com/content/article/PII:' + pii + '?view=FULL'
+        self.headers['Accept'] = 'application/pdf'
+
+        r = requests.get(pdf_url, stream=True, headers=self.headers)
+        if r.status_code == 200:
+          with open(self.article_path, 'wb') as f:
+            for chunk in r.iter_content(2048):
+                f.write(chunk)
+      except requests.exceptions.ConnectionError:
+        print '***API download limit exceeded!***'
+        print 'Waiting 1000 seconds before trying again'
+        sleep(1000) #API request limit exceeded; wait and try again
 
   def scrape_article(self,  mode, directory, pii=None, doi=None, regex=True):
     try:
