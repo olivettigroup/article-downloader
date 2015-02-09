@@ -85,6 +85,20 @@ class ArticleDownloader:
       print 'Waiting 1000 seconds before trying again'
       sleep(1000) #API request limit exceeded; wait and try again
 
+  def check_els_entitlement(self, pii):
+    url = 'http://api.elsevier.com/content/article/entitlement/pii/' + pii
+    self.headers['Accept'] = 'application/json'
+
+    response = json.loads(requests.get(url, headers=self.headers).content)
+
+    try:
+      if response['entitlement-response']['document-entitlement']['entitled'] == True:
+        return True
+      else:
+        return False
+    except:
+      return False
+
   def get_pdfs_from_search(self, query, directory, mode='crossref', rows=500):
     if mode == 'crossref':
       search_url = 'http://api.crossref.org/works?filter=has-license:true,has-full-text:true&query=' + query + '&rows=' + str(rows)
@@ -106,7 +120,7 @@ class ArticleDownloader:
 
 
   def get_pdf_from_pii(self, pii, directory, mode='elsevier'):
-    if mode == 'elsevier':
+    if mode == 'elsevier' and self.check_els_entitlement(pii):
       try:
         name = re.sub('[\(\)]', '', pii)
         name = re.sub('\s+', '', name)
