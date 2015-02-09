@@ -68,11 +68,12 @@ class ArticleDownloader:
 
 
   def get_piis_from_file(self, file):
-    with open(file) as f:
-      for pii in f:
-        pii = re.sub('[\-\(\)]', '', pii)
-        if pii not in self.piis:
-          self.piis.append(pii)
+    file.seek(0)
+    lines = file.readlines()
+    for pii in lines:
+      pii = re.sub('[\-\(\)]', '', pii)
+      if pii not in self.piis:
+        self.piis.append(pii)
 
   def get_xml_from_pii(self, pii):
     try:
@@ -119,22 +120,19 @@ class ArticleDownloader:
                   f.write(chunk)
 
 
-  def get_pdf_from_pii(self, pii, directory, mode='elsevier'):
+  def get_pdf_from_pii(self, pii, writefile, mode='elsevier'):
     if mode == 'elsevier' and self.check_els_entitlement(pii):
       try:
         name = re.sub('[\(\)]', '', pii)
         name = re.sub('\s+', '', name)
-        self.article_path = directory + name
-        self.article_path += '.pdf'
 
         pdf_url='http://api.elsevier.com/content/article/PII:' + pii + '?view=FULL'
         self.headers['Accept'] = 'application/pdf'
 
         r = requests.get(pdf_url, stream=True, headers=self.headers)
         if r.status_code == 200:
-          with open(self.article_path, 'wb') as f:
-            for chunk in r.iter_content(2048):
-                f.write(chunk)
+          for chunk in r.iter_content(2048):
+              writefile.write(chunk)
       except requests.exceptions.ConnectionError:
         print '***API download limit exceeded!***'
         print 'Waiting 1000 seconds before trying again'
@@ -180,35 +178,30 @@ class ArticleDownloader:
         for chunk in r.iter_content(2048):
             f.write(chunk)
 
-  def save_xml_data(self, xml, path):
-    print 'Saved XML to: ' + path
-    with open(path, 'wb') as f:
-      f.write(xml)
-
   def load_queries_from_csv(self, csvf, limit=500, start=0, count=1):
-    with open(csvf, 'rU') as f:
-      csvreader = reader(f, delimiter=',')
-      for i, line in enumerate(csvreader):
-        if i > limit:
-          break
+    csvf.seek(0)
+    csvreader = reader(csvf, delimiter=',')
+    for i, line in enumerate(csvreader):
+      if i > limit:
+        break
 
-        if i >= start:
-          #Build search query (assume 1st column is article titles)
-          title = re.sub('\[\]\=\,\.0-9\>\<\:]', '', line[0])
-          title = re.sub('\(.*?\)', '', title)
-          title = re.sub('\/', '\s', title)
-          title = title.split()
+      if i >= start:
+        #Build search query (assume 1st column is article titles)
+        title = re.sub('\[\]\=\,\.0-9\>\<\:]', '', line[0])
+        title = re.sub('\(.*?\)', '', title)
+        title = re.sub('\/', '\s', title)
+        title = title.split()
 
-          #filter out short words and long words
-          title = [word for word in title if 3 < len(word) < 15]
-          title = '+'.join(title)
+        #filter out short words and long words
+        title = [word for word in title if 3 < len(word) < 15]
+        title = '+'.join(title)
 
-          query = title
+        query = title
 
-          if 0 < count < 100:
-            query += '&count=' + str(count)
-            self.queries.append(query)
-          elif count > 100:
-            for j in range(0, count, 100):
-              split_query = query + '&count=100&start=' + str(j)
-              self.queries.append(split_query)
+        if 0 < count < 100:
+          query += '&count=' + str(count)
+          self.queries.append(query)
+        elif count > 100:
+          for j in range(0, count, 100):
+            split_query = query + '&count=100&start=' + str(j)
+            self.queries.append(split_query)
