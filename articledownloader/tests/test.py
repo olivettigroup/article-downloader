@@ -5,7 +5,7 @@ from tempfile import TemporaryFile
 
 class Tester(TestCase):
   def setUp(self):
-    self.downloader = ArticleDownloader(environ.get('ELS_API_KEY'))
+    self.downloader = ArticleDownloader('NO_API_KEY')
     self.pii = 'S0019995869905385'
     self.pdf_file = TemporaryFile(mode='wb')
 
@@ -22,7 +22,7 @@ class Tester(TestCase):
 
   def test_entitlement(self):
     #Test entitlement
-    self.assertTrue(self.downloader.check_els_entitlement(self.pii))
+    self.assertFalse(self.downloader.check_els_entitlement(self.pii))
 
   def test_list_load(self):
     #PII list test
