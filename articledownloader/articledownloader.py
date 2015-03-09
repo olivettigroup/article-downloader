@@ -1,6 +1,7 @@
 import requests
 import re
 import json
+import settings
 from csv import reader
 from time import sleep
 from HTMLParser import HTMLParser
@@ -205,3 +206,6 @@ class ArticleDownloader:
           for j in range(0, count, 100):
             split_query = query + '&count=100&start=' + str(j)
             self.queries.append(split_query)
+
+    def execute_after_script():
+      execfile(settings.after_scipt)
