@@ -24,16 +24,12 @@ class Tester(TestCase):
     #Test entitlement
     self.assertFalse(self.downloader.check_els_entitlement(self.pii))
 
-  def test_list_load(self):
-    #PII list test
-    self.downloader.get_piis_from_file(self.txt_file)
-
   def test_search(self):
     #Search test
-    self.downloader.load_queries_from_csv(self.csv_file, count=5)
+    queries = self.downloader.load_queries_from_csv(self.csv_file, count=5)
 
-    for query in self.downloader.queries:
-      self.downloader.get_piis_dois_from_search(query, mode='elsevier')
+    for query in queries:
+      self.downloader.get_piis_from_search(query)
 
   def tearDown(self):
     pass
