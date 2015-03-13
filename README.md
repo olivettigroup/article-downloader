@@ -9,11 +9,11 @@ Primarily built for Elsevier's text mining API; support for other APIs is gradua
 Use `pip install articledownloader`.
 
 ##Usage
-Use the `ArticleDownloader` class to download articles en masse. Currently supported publishers are Elsevier, CrossRef and RSC. You'll need an API key, and please respect each publisher's terms of use.
+Use the `ArticleDownloader` class to download articles en masse. Currently supported publishers are Elsevier and CrossRef. You'll need an API key, and please respect each publisher's terms of use.
 
 It's usually best to add your API key to your environment variables with something like `export API_KEY=xxxxx`.
 
-You can find articles in two ways: You can load in a text file with a list of DOIs (or PIIs, which are Elsevier's proprietary equivalent). Or, you can have a CSV where the first column corresponds to search queries, and these queries will be used to find articles and retrieve their DOIs/PIIs.
+You can find articles in two ways: You can load in a text file with a list of DOIs. Or, you can have a CSV where the first column corresponds to search queries, and these queries will be used to find articles and retrieve their DOIs.
 
 ##Examples
 
@@ -22,9 +22,10 @@ You can find articles in two ways: You can load in a text file with a list of DO
     downloader = ArticleDownloader('your_API_key')
     my_file = open('my_path/something.pdf')
 
-    downloader.get_pdf_from_pii('target_pii', my_file)
+    downloader.get_pdf_from_doi('target_doi', my_file, 'crossref')
+    downloader.get_pdf_from_doi('target_doi', my_file, 'elsevier')
 
-###Using search queries to find DOIs/PIIs
+###Using search queries to find DOIs
 CSV file:
 
     search query 001,
@@ -40,15 +41,15 @@ Python:
     downloader = ArticleDownloader('your_API_key')
 
     #grab up to 5 articles per search
-    queries = downloader.load_queries_from_csv('path_to_csv_file', count=5)
+    queries = downloader.load_queries_from_csv('path_to_csv_file')
 
     piis = []
     for query in queries:
-      piis.append(downloader.get_piis_from_search(query, mode='elsevier'))
+      piis.append(downloader.get_dois_from_search(query))
 
-    piis = set(piis) #Get rid of duplicates
+    dois = set(dois) #Get rid of duplicates
 
-    for pii in piis:
-        file = open(str(pii) + '.pdf')
-        downloader.get_pdf_from_pii(pii, file)
+    for i, doi in enumerate(dois):
+        file = open(str(i) + '.pdf')
+        downloader.get_pdf_from_doi(doi, file, 'crossref') #or 'elsevier'
         file.close()
