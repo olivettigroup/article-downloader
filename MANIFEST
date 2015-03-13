@@ -3,3 +3,4 @@ setup.cfg
 setup.py
 articledownloader/__init__.py
 articledownloader/articledownloader.py
+articledownloader/settings.py
