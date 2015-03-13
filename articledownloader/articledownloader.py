@@ -23,15 +23,15 @@ class ArticleDownloader:
         if article['pii'] not in self.piis:
           piis.append(article['pii'])
 
-      piis = list(set(piis)) #Guarantee uniqueness of IDs
+      piis = set(piis) #Guarantee uniqueness of IDs
       return piis
 
     except requests.exceptions.ConnectionError:
-      print '***API search limit exceeded!***'
-      return -1
+      # API search limit exceeded!
+      return []
     except KeyError:
-      print 'Failed search query: ' + query
-      return -1
+      # Failed search query
+      return []
 
   def check_els_entitlement(self, pii):
     url = 'http://api.elsevier.com/content/article/entitlement/pii/' + pii
@@ -71,6 +71,9 @@ class ArticleDownloader:
       if r.status_code == 200:
         for chunk in r.iter_content(2048):
           writefile.write(chunk)
+      return True
+
+    return False
 
 
   def get_pdf_from_pii(self, pii, writefile):
@@ -86,10 +89,13 @@ class ArticleDownloader:
         if r.status_code == 200:
           for chunk in r.iter_content(2048):
             writefile.write(chunk)
+          return True
       except requests.exceptions.ConnectionError:
-        print '***API download limit exceeded!***'
-        print 'Waiting 1000 seconds before trying again'
-        sleep(1000) #API request limit exceeded; wait and try again
+        # API download limit exceeded
+        return False
+
+      return False
+
 
 
   def load_queries_from_csv(self, csvf, limit=500, start=0, count=1):

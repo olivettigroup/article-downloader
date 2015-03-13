@@ -24,28 +24,6 @@ You can find articles in two ways: You can load in a text file with a list of DO
 
     downloader.get_pdf_from_pii('target_pii', my_file)
 
-###Downloading many articles from a list of PIIs
-PII File:
-
-    pii00001
-    pii00002
-    pii00003
-    .
-    .
-    .
-
-Python:
-
-    from articledownloader.articledownloader import ArticleDownloader
-    downloader = ArticleDownloader('your_API_key')
-    pii_file = open('/path_to_pii_file', 'rb')
-
-    downloader.get_piis_from_file(pii_file)
-    for pii in downloader.piis:
-      file = open(str(pii) + '.pdf')
-      downloader.get_pdf_from_pii(pii, file)
-      file.close()
-
 ###Using search queries to find DOIs/PIIs
 CSV file:
 
@@ -62,12 +40,15 @@ Python:
     downloader = ArticleDownloader('your_API_key')
 
     #grab up to 5 articles per search
-    downloader.load_queries_from_csv('path_to_csv_file', count=5)
+    queries = downloader.load_queries_from_csv('path_to_csv_file', count=5)
 
-    for query in downloader.queries:
-      downloader.get_piis_dois_from_search(query, mode='elsevier')
+    piis = []
+    for query in queries:
+      piis.append(downloader.get_piis_from_search(query, mode='elsevier'))
 
-    for pii in downloader.piis:
+    piis = set(piis) #Get rid of duplicates
+
+    for pii in piis:
         file = open(str(pii) + '.pdf')
         downloader.get_pdf_from_pii(pii, file)
         file.close()
