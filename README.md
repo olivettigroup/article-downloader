@@ -2,7 +2,7 @@ article-downloader
 ==================
 [![Build Status](https://travis-ci.org/eddotman/article-downloader.svg?branch=master)](https://travis-ci.org/eddotman/article-downloader)
 
-Uses publisher APIs (and sometime direct download) to programmatically retrieve large amounts of scientific journal articles for text mining.
+Uses publisher APIs to programmatically retrieve large amounts of scientific journal articles for text mining.
 Primarily built for Elsevier's text mining API; support for other APIs is gradually being added.
 
 ##Installation
@@ -13,7 +13,7 @@ Use the `ArticleDownloader` class to download articles en masse. Currently suppo
 
 It's usually best to add your API key to your environment variables with something like `export API_KEY=xxxxx`.
 
-You can find articles in two ways: You can load in a text file with a list of DOIs. Or, you can have a CSV where the first column corresponds to search queries, and these queries will be used to find articles and retrieve their DOIs.
+You can find DOIs using a CSV where the first column corresponds to search queries, and these queries will be used to find articles and retrieve their DOIs.
 
 ##Examples
 
