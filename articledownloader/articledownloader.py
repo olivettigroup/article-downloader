@@ -27,7 +27,6 @@ class ArticleDownloader:
   def get_dois_from_search(self, query, rows=500):
       search_url = 'http://api.crossref.org/works?filter=has-license:true,has-full-text:true&query=' + query + '&rows=' + str(rows)
       response = json.loads(requests.get(search_url, headers=self.headers).text)
-      print response
       dois = []
 
       for item in response["message"]["items"]:
