@@ -20,7 +20,7 @@ You can find DOIs using a CSV where the first column corresponds to search queri
 ###Downloading a single article
     from articledownloader.articledownloader import ArticleDownloader
     downloader = ArticleDownloader('your_API_key')
-    my_file = open('my_path/something.pdf')
+    my_file = open('my_path/something.pdf', 'r')
 
     downloader.get_pdf_from_doi('target_doi', my_file, 'crossref')
     downloader.get_pdf_from_doi('target_doi', my_file, 'elsevier')
@@ -41,7 +41,7 @@ Python:
     downloader = ArticleDownloader('your_API_key')
 
     #grab up to 5 articles per search
-    queries = downloader.load_queries_from_csv(open('path_to_csv_file'))
+    queries = downloader.load_queries_from_csv(open('path_to_csv_file', 'r'))
 
     piis = []
     for query in queries:
