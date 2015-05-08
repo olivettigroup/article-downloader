@@ -41,7 +41,7 @@ Python:
     downloader = ArticleDownloader('your_API_key')
 
     #grab up to 5 articles per search
-    queries = downloader.load_queries_from_csv('path_to_csv_file')
+    queries = downloader.load_queries_from_csv(open('path_to_csv_file'))
 
     piis = []
     for query in queries:
