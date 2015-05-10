@@ -43,11 +43,9 @@ Python:
     #grab up to 5 articles per search
     queries = downloader.load_queries_from_csv(open('path_to_csv_file', 'r'))
 
-    piis = []
+    dois = []
     for query in queries:
-      piis.append(downloader.get_dois_from_search(query))
-
-    dois = set(dois) #Get rid of duplicates
+      dois.append(downloader.get_dois_from_search(query))
 
     for i, doi in enumerate(dois):
         file = open(str(i) + '.pdf')
