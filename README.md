@@ -1,6 +1,7 @@
 article-downloader
 ==================
-[![Build Status](https://travis-ci.org/eddotman/article-downloader.svg?branch=master)](https://travis-ci.org/eddotman/article-downloader)
+[![Build Status](https://travis-ci.org/eddotman/article-downloader.svg?branch=master)](https://travis-ci.org/eddotman/article-downloader) [![Documentation Status](https://readthedocs.org/projects/article-downloader/badge/?version=latest)](https://readthedocs.org/projects/article-downloader/?badge=latest)
+
 
 Uses publisher APIs to programmatically retrieve large amounts of scientific journal articles for text mining.
 Primarily built for Elsevier's text mining API; support for other APIs is gradually being added.
@@ -14,6 +15,9 @@ Use the `ArticleDownloader` class to download articles en masse. Currently suppo
 It's usually best to add your API key to your environment variables with something like `export API_KEY=xxxxx`.
 
 You can find DOIs using a CSV where the first column corresponds to search queries, and these queries will be used to find articles and retrieve their DOIs.
+
+##Documentation
+You can read the documentation for this repository [here](http://article-downloader.readthedocs.org/en/latest/).
 
 ##Examples
 
