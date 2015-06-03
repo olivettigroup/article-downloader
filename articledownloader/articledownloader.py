@@ -11,6 +11,15 @@ class ArticleDownloader:
     self.headers = {'X-ELS-APIKEY': api_key}
 
   def check_els_entitlement(self, doi):
+    '''
+    Checks entitlement for fulltext downloads on Elsevier's API 
+
+    :param doi: Document Object Identifier (DOI) for the paper we are checking 
+    :type doi: str
+
+    :returns: Whether or not we can download the article (True = Yes, No = False)
+    :rtype: bool
+    '''
     url = 'http://api.elsevier.com/content/article/entitlement/doi/' + doi
     self.headers['Accept'] = 'application/json'
 
@@ -25,16 +34,45 @@ class ArticleDownloader:
       return False
 
   def get_dois_from_search(self, query, rows=500):
-      search_url = 'http://api.crossref.org/works?filter=has-license:true,has-full-text:true&query=' + query + '&rows=' + str(rows)
-      response = json.loads(requests.get(search_url, headers=self.headers).text)
-      dois = []
+    '''
+    Grabs a set of unique DOIs based on a search query using the CrossRef API
 
-      for item in response["message"]["items"]:
-        dois.append(item["DOI"])
+    :param query: the search string 
+    :type query: str 
 
-      return set(dois)
+    :param rows: the maximum number of DOIs to find 
+    :type rows: int 
+
+    :returns: the unique set of DOIs 
+    :rtype: set 
+    '''
+    
+    search_url = 'http://api.crossref.org/works?filter=has-license:true,has-full-text:true&query=' + query + '&rows=' + str(rows)
+    response = json.loads(requests.get(search_url, headers=self.headers).text)
+    dois = []
+
+    for item in response["message"]["items"]:
+      dois.append(item["DOI"])
+
+    return set(dois)
 
   def get_pdf_from_doi(self, doi, writefile, mode):
+    '''
+    Downloads and writes a PDF article to a file, given a DOI and operating mode 
+
+    :param doi: DOI string for the article we want to download 
+    :type doi: str 
+
+    :param writefile: file object to write to 
+    :type writefile: file 
+
+    :param mode: either 'crossref' or 'elsevier', depending on how we wish to access the file 
+    :type mode: str 
+
+    :returns: True on succesful write, False otherwise
+    :rtype: bool
+    '''
+
     if mode == 'crossref':
       base_url = 'http://api.crossref.org/works/'
       api_url = base_url + doi
@@ -73,6 +111,16 @@ class ArticleDownloader:
         return False
 
   def load_queries_from_csv(self, csvf):
+    '''
+    Loads a list of queries from a CSV file 
+
+    :param csvf: file object containing a CSV file with one query per line 
+    :type csvf: file 
+
+    :returns: a list of queries, processed to be insertable into REST API (GET) calls 
+    :rtype: list 
+    '''
+    
     csvf.seek(0)
     csvreader = reader(csvf, delimiter=',')
     queries = []
