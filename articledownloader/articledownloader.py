@@ -47,14 +47,26 @@ class ArticleDownloader:
     :rtype: set 
     '''
     
-    search_url = 'http://api.crossref.org/works?filter=has-license:true,has-full-text:true&query=' + query + '&rows=' + str(rows)
-    response = json.loads(requests.get(search_url, headers=self.headers).text)
     dois = []
+    base_url = 'http://api.crossref.org/works?filter=has-license:true,has-full-text:true&query='
 
-    for item in response["message"]["items"]:
-      dois.append(item["DOI"])
+    if rows < 1000: #No multi-query needed
+      search_url = base_url + query + '&rows=' + str(rows)
+      response = json.loads(requests.get(search_url, headers=self.headers).text)
+      
+      for item in response["message"]["items"]:
+        dois.append(item["DOI"])
+      
+    else: #Need to split queries
+      for i in range(0,1000,rows):
+        search_url = base_url + query + '&rows=' + str(min(rows - i, 1000)) + '&offset=' + str(i)
+        response = json.loads(requests.get(search_url, headers=self.headers).text)
+
+        for item in response["message"]["items"]:
+          dois.append(item["DOI"])
 
     return set(dois)
+
 
   def get_pdf_from_doi(self, doi, writefile, mode):
     '''
