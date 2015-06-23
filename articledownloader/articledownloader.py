@@ -58,7 +58,7 @@ class ArticleDownloader:
         dois.append(item["DOI"])
       
     else: #Need to split queries
-      for i in range(0,1000,rows):
+      for i in range(0,rows, 1000):
         search_url = base_url + query + '&rows=' + str(min(rows - i, 1000)) + '&offset=' + str(i)
         response = json.loads(requests.get(search_url, headers=self.headers).text)
 
