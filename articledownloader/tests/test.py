@@ -5,7 +5,7 @@ from tempfile import TemporaryFile
 
 class Tester(TestCase):
   def setUp(self):
-    self.downloader = ArticleDownloader('NO_API_KEY')
+    self.downloader = ArticleDownloader(environ.get('ELS_API_KEY'))
     self.doi = '10.1016/j.nantod.2008.10.014'
     self.pdf_file = TemporaryFile(mode='wb')
 
@@ -21,9 +21,12 @@ class Tester(TestCase):
     self.downloader.get_pdf_from_doi(self.doi, self.pdf_file, 'elsevier')
     self.downloader.get_pdf_from_doi(self.doi, self.pdf_file, 'crossref')
 
+  def test_abstract_download(self):
+    self.downloader.get_abstract_from_doi(self.doi, 'elsevier')
+
   def test_entitlement(self):
     #Test entitlement
-    self.assertFalse(self.downloader.check_els_entitlement(self.doi))
+    self.assertTrue(self.downloader.check_els_entitlement(self.doi))
 
   def test_search(self):
     #Search test

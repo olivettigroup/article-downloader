@@ -81,7 +81,7 @@ class ArticleDownloader:
     :param mode: either 'crossref' or 'elsevier', depending on how we wish to access the file 
     :type mode: str 
 
-    :returns: True on succesful write, False otherwise
+    :returns: True on successful write, False otherwise
     :rtype: bool
     '''
 
@@ -105,9 +105,6 @@ class ArticleDownloader:
     if mode == 'elsevier':
       if self.check_els_entitlement(doi):
         try:
-          name = re.sub('[\(\)]', '', doi)
-          name = re.sub('\s+', '', name)
-
           pdf_url='http://api.elsevier.com/content/article/doi:' + doi + '?view=FULL'
           self.headers['Accept'] = 'application/pdf'
 
@@ -121,6 +118,36 @@ class ArticleDownloader:
           return False
 
         return False
+
+  def get_abstract_from_doi(self, doi, mode):
+    '''
+    Returns abstract as a unicode string given a DOI
+
+    :param doi: DOI string for the article we want to grab metadata for 
+    :type doi: str 
+
+    :param mode: Only supports 'elsevier' for now
+    :type mode: str 
+
+    :returns: An abstract (or None on failure)
+    :rtype: unicode
+    '''
+
+    if mode == 'elsevier':
+      if self.check_els_entitlement(doi):
+        try:
+          url='http://api.elsevier.com/content/article/doi:' + doi + '?view=FULL'
+          self.headers['Accept'] = 'application/json'
+
+          r = requests.get(url, headers=self.headers)
+          if r.status_code == 200:
+            abstract = unicode(json.loads(r.text)['full-text-retrieval-response']['coredata']['dc:description'])
+            return abstract
+        except requests.exceptions.ConnectionError:
+          # API download limit exceeded
+          return None
+
+        return None
 
   def load_queries_from_csv(self, csvf):
     '''
