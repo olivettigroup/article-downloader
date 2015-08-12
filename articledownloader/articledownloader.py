@@ -2,14 +2,18 @@ import requests
 import re
 import json
 import settings
+import scrapers
+from autologging import logged, traced
 from csv import reader
 from time import sleep
 
+@logged
 class ArticleDownloader:
 
   def __init__(self, api_key):
     self.headers = {'X-ELS-APIKEY': api_key}
 
+  @traced
   def check_els_entitlement(self, doi):
     '''
     Checks entitlement for fulltext downloads on Elsevier's API 
@@ -17,8 +21,8 @@ class ArticleDownloader:
     :param doi: Document Object Identifier (DOI) for the paper we are checking 
     :type doi: str
 
-    :returns: Whether or not we can download the article (True = Yes, No = False)
     :rtype: bool
+    :returns: Whether or not we can download the article (True = Yes, No = False)
     '''
     url = 'http://api.elsevier.com/content/article/entitlement/doi/' + doi
     self.headers['Accept'] = 'application/json'
@@ -33,6 +37,7 @@ class ArticleDownloader:
     except:
       return False
 
+  @traced
   def get_dois_from_search(self, query, rows=500):
     '''
     Grabs a set of unique DOIs based on a search query using the CrossRef API
@@ -67,7 +72,7 @@ class ArticleDownloader:
 
     return set(dois)
 
-
+  @traced
   def get_pdf_from_doi(self, doi, writefile, mode):
     '''
     Downloads and writes a PDF article to a file, given a DOI and operating mode 
@@ -119,6 +124,31 @@ class ArticleDownloader:
 
         return False
 
+    if mode == 'rsc':
+      scraper = scrapers.RSC()
+      scrape_url = 'http://dx.doi.org/' + doi
+      download_url = None
+      
+      r = requests.get(scrape_url, headers=self.headers)
+      if r.status_code == 200:
+        scraper.feed(r.content)
+
+        if scraper.download_link is not None:
+          download_url = scraper.download_link
+
+      if download_url is not None:
+        r = requests.get(download_url, stream=True, headers=self.headers)
+        if r.status_code == 200:
+          try:
+            for chunk in r.iter_content(2048):
+              writefile.write(chunk)
+            return True
+          except:
+            return False
+
+      return False
+
+  @traced
   def get_abstract_from_doi(self, doi, mode):
     '''
     Returns abstract as a unicode string given a DOI
@@ -149,6 +179,7 @@ class ArticleDownloader:
 
         return None
 
+  @traced
   def load_queries_from_csv(self, csvf):
     '''
     Loads a list of queries from a CSV file 
