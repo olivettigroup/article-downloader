@@ -113,7 +113,7 @@ class ArticleDownloader:
             for chunk in r.iter_content(2048):
               writefile.write(chunk)
             return True
-        except requests.exceptions.ConnectionError:
+        except:
           # API download limit exceeded
           return False
 
@@ -143,8 +143,8 @@ class ArticleDownloader:
           if r.status_code == 200:
             abstract = unicode(json.loads(r.text)['full-text-retrieval-response']['coredata']['dc:description'])
             return abstract
-        except requests.exceptions.ConnectionError:
-          # API download limit exceeded
+        except:
+          # API download limit exceeded or no abstract exists
           return None
 
         return None
