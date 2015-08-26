@@ -52,6 +52,6 @@ Python:
       dois.append(downloader.get_dois_from_search(query))
 
     for i, doi in enumerate(dois):
-        file = open(str(i) + '.pdf')
+        file = open(str(i) + '.pdf', 'w')
         downloader.get_pdf_from_doi(doi, file, 'crossref') #or 'elsevier'
         file.close()
