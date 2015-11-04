@@ -48,14 +48,15 @@ class ArticleDownloader:
     :param rows: the maximum number of DOIs to find 
     :type rows: int 
 
-    :returns: the unique set of DOIs 
-    :rtype: set 
+    :returns: the unique set of DOIs as a list
+    :rtype: list 
     '''
     
     dois = []
     base_url = 'http://api.crossref.org/works?filter=has-license:true,has-full-text:true&query='
+    max_rows = 1000 #Defined by CrossRef API
 
-    if rows < 1000: #No multi-query needed
+    if rows < max_rows: #No multi-query needed
       search_url = base_url + query + '&rows=' + str(rows)
       response = json.loads(requests.get(search_url, headers=self.headers).text)
       
@@ -63,14 +64,20 @@ class ArticleDownloader:
         dois.append(item["DOI"])
       
     else: #Need to split queries
-      for i in range(0,rows, 1000):
-        search_url = base_url + query + '&rows=' + str(min(rows - i, 1000)) + '&offset=' + str(i)
+      stop_query = False
+      cursor = '*'
+      while not stop_query:
+        search_url = base_url + query + '&rows=' + str(max_rows) + '&cursor=' + cursor
         response = json.loads(requests.get(search_url, headers=self.headers).text)
+        cursor = response['message']['next-cursor']
+
+        if len(response["message"]["items"]) < max_rows or len(dois) >= rows:
+          stop_query = True
 
         for item in response["message"]["items"]:
           dois.append(item["DOI"])
 
-    return set(dois)
+    return list(set(dois))
 
   @traced
   def get_pdf_from_doi(self, doi, writefile, mode):
