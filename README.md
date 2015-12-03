@@ -1,6 +1,6 @@
 article-downloader
 ==================
-[![Circle CI](https://circleci.com/gh/eddotman/article-downloader.svg?style=svg&circle-token=c5aed981b2738abfba780c85e74c89a11c8debe6)](https://circleci.com/gh/eddotman/article-downloader) [![Documentation Status](https://readthedocs.org/projects/article-downloader/badge/?version=latest)](https://readthedocs.org/projects/article-downloader/?badge=latest)
+[![Circle CI](https://circleci.com/gh/eddotman/article-downloader.svg?style=svg&circle-token=c5aed981b2738abfba780c85e74c89a11c8debe6)](https://circleci.com/gh/eddotman/article-downloader) [![Documentation Status](https://readthedocs.org/projects/article-downloader/badge/?version=latest)](https://readthedocs.org/projects/article-downloader/?badge=latest) [![DOI](https://zenodo.org/badge/19479/eddotman/article-downloader.svg)](https://zenodo.org/badge/latestdoi/19479/eddotman/article-downloader)
 
 
 Uses publisher APIs to programmatically retrieve large amounts of scientific journal articles for text mining.
