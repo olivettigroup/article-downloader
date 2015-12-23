@@ -73,10 +73,13 @@ class ArticleDownloader:
 
         while not stop_ping:
           response = requests.get(search_url, headers=self.headers)
-          if response.status_code == 200:
-            j_response = response.json()
-            cursor = response['message']['next-cursor']
-            stop_ping = True
+          try:
+            if response.status_code == 200:
+              j_response = response.json()
+              cursor = response['message']['next-cursor']
+              stop_ping = True
+          except:
+            self.__logger.warning(response)
 
         if len(response["message"]["items"]) < max_rows or len(dois) >= rows:
           stop_query = True
