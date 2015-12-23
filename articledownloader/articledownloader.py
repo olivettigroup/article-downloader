@@ -16,9 +16,9 @@ class ArticleDownloader:
   @traced
   def check_els_entitlement(self, doi):
     '''
-    Checks entitlement for fulltext downloads on Elsevier's API 
+    Checks entitlement for fulltext downloads on Elsevier's API
 
-    :param doi: Document Object Identifier (DOI) for the paper we are checking 
+    :param doi: Document Object Identifier (DOI) for the paper we are checking
     :type doi: str
 
     :rtype: bool
@@ -42,56 +42,59 @@ class ArticleDownloader:
     '''
     Grabs a set of unique DOIs based on a search query using the CrossRef API
 
-    :param query: the search string 
-    :type query: str 
+    :param query: the search string
+    :type query: str
 
-    :param rows: the maximum number of DOIs to find 
-    :type rows: int 
+    :param rows: the maximum number of DOIs to find
+    :type rows: int
 
     :returns: the unique set of DOIs as a list
-    :rtype: list 
+    :rtype: list
     '''
-    
+
     dois = []
     base_url = 'http://api.crossref.org/works?filter=has-license:true,has-full-text:true&query='
     max_rows = 1000 #Defined by CrossRef API
 
-    if rows < max_rows: #No multi-query needed
+    if rows <= max_rows: #No multi-query needed
       search_url = base_url + query + '&rows=' + str(rows)
-      response = json.loads(requests.get(search_url, headers=self.headers).text)
-      
+      response = requests.get(search_url, headers=self.headers).json()
+
       for item in response["message"]["items"]:
         dois.append(item["DOI"])
-      
+
     else: #Need to split queries
       stop_query = False
       cursor = '*'
       while not stop_query:
-        search_url = base_url + query + '&rows=' + str(max_rows) + '&cursor=' + cursor
-        response = json.loads(requests.get(search_url, headers=self.headers).text)
-        cursor = response['message']['next-cursor']
+        try:
+          search_url = base_url + query + '&rows=' + str(max_rows) + '&cursor=' + cursor
+          response = requests.get(search_url, headers=self.headers).json()
+          cursor = response['message']['next-cursor']
 
-        if len(response["message"]["items"]) < max_rows or len(dois) >= rows:
-          stop_query = True
+          if len(response["message"]["items"]) < max_rows or len(dois) >= rows:
+            stop_query = True
 
-        for item in response["message"]["items"]:
-          dois.append(item["DOI"])
+          for item in response["message"]["items"]:
+            dois.append(item["DOI"])
+        except:
+          return list(set(dois))
 
     return list(set(dois))
 
   @traced
   def get_pdf_from_doi(self, doi, writefile, mode):
     '''
-    Downloads and writes a PDF article to a file, given a DOI and operating mode 
+    Downloads and writes a PDF article to a file, given a DOI and operating mode
 
-    :param doi: DOI string for the article we want to download 
-    :type doi: str 
+    :param doi: DOI string for the article we want to download
+    :type doi: str
 
-    :param writefile: file object to write to 
-    :type writefile: file 
+    :param writefile: file object to write to
+    :type writefile: file
 
-    :param mode: either 'crossref' | 'elsevier' | 'rsc' | 'springer', depending on how we wish to access the file 
-    :type mode: str 
+    :param mode: either 'crossref' | 'elsevier' | 'rsc' | 'springer', depending on how we wish to access the file
+    :type mode: str
 
     :returns: True on successful write, False otherwise
     :rtype: bool
@@ -135,7 +138,7 @@ class ArticleDownloader:
       scraper = scrapers.RSC()
       scrape_url = 'http://dx.doi.org/' + doi
       download_url = None
-      
+
       r = requests.get(scrape_url, headers=self.headers)
       if r.status_code == 200:
         scraper.feed(r.content)
@@ -175,11 +178,11 @@ class ArticleDownloader:
     '''
     Returns abstract as a unicode string given a DOI
 
-    :param doi: DOI string for the article we want to grab metadata for 
-    :type doi: str 
+    :param doi: DOI string for the article we want to grab metadata for
+    :type doi: str
 
     :param mode: Only supports 'elsevier' for now
-    :type mode: str 
+    :type mode: str
 
     :returns: An abstract (or None on failure)
     :rtype: unicode
@@ -204,15 +207,15 @@ class ArticleDownloader:
   @traced
   def load_queries_from_csv(self, csvf):
     '''
-    Loads a list of queries from a CSV file 
+    Loads a list of queries from a CSV file
 
-    :param csvf: file object containing a CSV file with one query per line 
-    :type csvf: file 
+    :param csvf: file object containing a CSV file with one query per line
+    :type csvf: file
 
-    :returns: a list of queries, processed to be insertable into REST API (GET) calls 
-    :rtype: list 
+    :returns: a list of queries, processed to be insertable into REST API (GET) calls
+    :rtype: list
     '''
-    
+
     csvf.seek(0)
     csvreader = reader(csvf, delimiter=',')
     queries = []
