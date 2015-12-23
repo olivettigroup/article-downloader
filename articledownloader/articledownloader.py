@@ -66,19 +66,23 @@ class ArticleDownloader:
     else: #Need to split queries
       stop_query = False
       cursor = '*'
+
       while not stop_query:
-        try:
-          search_url = base_url + query + '&rows=' + str(max_rows) + '&cursor=' + cursor
-          response = requests.get(search_url, headers=self.headers).json()
-          cursor = response['message']['next-cursor']
+        stop_ping = False
+        search_url = base_url + query + '&rows=' + str(max_rows) + '&cursor=' + cursor
 
-          if len(response["message"]["items"]) < max_rows or len(dois) >= rows:
-            stop_query = True
+        while not stop_ping:
+          response = requests.get(search_url, headers=self.headers)
+          if response.status_code == 200:
+            j_response = response.json()
+            cursor = response['message']['next-cursor']
+            stop_ping = True
 
-          for item in response["message"]["items"]:
-            dois.append(item["DOI"])
-        except:
-          return list(set(dois))
+        if len(response["message"]["items"]) < max_rows or len(dois) >= rows:
+          stop_query = True
+
+        for item in response["message"]["items"]:
+          dois.append(item["DOI"])
 
     return list(set(dois))
 
