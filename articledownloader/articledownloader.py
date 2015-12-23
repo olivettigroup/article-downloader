@@ -80,10 +80,10 @@ class ArticleDownloader:
           except Exception, e:
             self.__logger.warning(e)
 
-        if len(response["message"]["items"]) < max_rows or len(dois) >= rows:
+        if len(j_response["message"]["items"]) < max_rows or len(dois) >= rows:
           stop_query = True
 
-        for item in response["message"]["items"]:
+        for item in j_response["message"]["items"]:
           dois.append(item["DOI"])
 
     return list(set(dois))
