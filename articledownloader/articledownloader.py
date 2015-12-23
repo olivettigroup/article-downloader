@@ -75,7 +75,7 @@ class ArticleDownloader:
           response = requests.get(search_url, headers=self.headers)
           try:
             j_response = response.json()
-            cursor = response['message']['next-cursor']
+            cursor = j_response['message']['next-cursor']
             stop_ping = True
           except Exception, e:
             self.__logger.warning(e)
