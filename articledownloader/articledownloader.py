@@ -77,8 +77,8 @@ class ArticleDownloader:
             j_response = response.json()
             cursor = response['message']['next-cursor']
             stop_ping = True
-          except:
-            self.__logger.warning(response)
+          except Exception, e:
+            self.__logger.warning(e)
 
         if len(response["message"]["items"]) < max_rows or len(dois) >= rows:
           stop_query = True

@@ -33,7 +33,7 @@ class Tester(TestCase):
     #Search test
     queries = self.downloader.load_queries_from_csv(self.csv_file)
     for query in queries:
-      self.downloader.get_dois_from_search(query, rows=1200)
+      self.downloader.get_dois_from_search(query, rows=1000)
 
   def tearDown(self):
     pass
