@@ -10,8 +10,19 @@ from time import sleep
 @logged
 class ArticleDownloader:
 
-  def __init__(self, api_key):
-    self.headers = {'X-ELS-APIKEY': api_key}
+  def __init__(self, els_api_key=None, crf_api_key=None):
+    '''
+    Initialize and set up API keys
+
+    :param els_api_key: API key for Elsevier
+    :type els_api_key: str
+    :param crf_api_key: API key for CrossRef
+    :type crf_api_key: str
+    '''
+    self.headers = {
+      'X-ELS-APIKEY': els_api_key,
+      'CR-Clickthrough-Client-Token': crf_api_key
+      }
 
   @traced
   def check_els_entitlement(self, doi):
