@@ -124,9 +124,9 @@ class ArticleDownloader:
       try:
         response = json.loads(requests.get(api_url, headers=self.headers).text)
         pdf_url = response['message']['link'][0]['URL']
-        app_type = response['message']['link'][0]['content-type']
+        app_type = str(response['message']['link'][0]['content-type'])
 
-        if app_type == 'application/pdf':
+        if app_type in ['application/pdf', 'unspecified']:
           r = requests.get(pdf_url, stream=True, headers=self.headers)
           if r.status_code == 200:
             for chunk in r.iter_content(2048):
