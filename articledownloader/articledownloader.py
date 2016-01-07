@@ -222,6 +222,36 @@ class ArticleDownloader:
         return None
 
   @traced
+  def get_title_from_doi(self, doi, mode):
+    '''
+    Returns title of an article as a unicode string given a DOI
+
+    :param doi: DOI string for the article we want to grab metadata for
+    :type doi: str
+
+    :param mode: Only supports 'crossref' for now
+    :type mode: str
+
+    :returns: An abstract (or None on failure)
+    :rtype: unicode
+    '''
+
+    if mode == 'crossref':
+      try:
+        url='http://api.crossref.org/works/' + doi
+        self.headers['Accept'] = 'application/json'
+
+        r = requests.get(url, headers=self.headers)
+        if r.status_code == 200:
+          title = unicode(r.json()['message']['title'][0])
+          return title
+      except:
+        # API download limit exceeded or no title exists
+        return None
+
+    return None
+
+  @traced
   def load_queries_from_csv(self, csvf):
     '''
     Loads a list of queries from a CSV file
