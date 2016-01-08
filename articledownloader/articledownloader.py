@@ -19,10 +19,8 @@ class ArticleDownloader:
     :param crf_api_key: API key for CrossRef
     :type crf_api_key: str
     '''
-    self.headers = {
-      'X-ELS-APIKEY': els_api_key,
-      'CR-Clickthrough-Client-Token': crf_api_key
-      }
+    self.els_api_key = els_api_key
+    self.crf_api_key = crf_api_key
 
   @traced
   def check_els_entitlement(self, doi):
@@ -36,9 +34,12 @@ class ArticleDownloader:
     :returns: Whether or not we can download the article (True = Yes, No = False)
     '''
     url = 'http://api.elsevier.com/content/article/entitlement/doi/' + doi
-    self.headers['Accept'] = 'application/json'
+    headers = {
+      'X-ELS-APIKEY': self.els_api_key,
+      'Accept': 'application/json'
+    }
 
-    response = json.loads(requests.get(url, headers=self.headers).content)
+    response = requests.get(url, headers=headers).json()
 
     try:
       if response['entitlement-response']['document-entitlement']['entitled'] == True:
@@ -67,9 +68,13 @@ class ArticleDownloader:
     base_url = 'http://api.crossref.org/works?filter=has-license:true,has-full-text:true&query='
     max_rows = 1000 #Defined by CrossRef API
 
+    headers = {
+      'Accept': 'application/json'
+    }
+
     if rows <= max_rows: #No multi-query needed
       search_url = base_url + query + '&rows=' + str(rows)
-      response = requests.get(search_url, headers=self.headers).json()
+      response = requests.get(search_url, headers=headers).json()
 
       for item in response["message"]["items"]:
         dois.append(item["DOI"])
@@ -83,7 +88,7 @@ class ArticleDownloader:
         search_url = base_url + query + '&rows=' + str(max_rows) + '&cursor=' + cursor
 
         while not stop_ping:
-          response = requests.get(search_url, headers=self.headers)
+          response = requests.get(search_url, headers=headers)
           try:
             j_response = response.json()
             cursor = j_response['message']['next-cursor']
@@ -121,26 +126,37 @@ class ArticleDownloader:
       base_url = 'http://api.crossref.org/works/'
       api_url = base_url + doi
 
+      headers = {
+        'CR-Clickthrough-Client-Token': self.crf_api_key,
+        'Accept': 'application/json'
+      }
+
       try:
-        response = json.loads(requests.get(api_url, headers=self.headers).text)
+        response = json.loads(requests.get(api_url, headers=headers).text)
         pdf_url = response['message']['link'][0]['URL']
         app_type = str(response['message']['link'][0]['content-type'])
 
         if app_type in ['application/pdf', 'unspecified']:
-          r = requests.get(pdf_url, stream=True, headers=self.headers)
+          headers['Accept'] = 'application/pdf'
+          r = requests.get(pdf_url, stream=True, headers=headers)
           if r.status_code == 200:
             for chunk in r.iter_content(2048):
               writefile.write(chunk)
-          return True
+            return True
       except:
         return False
+      return False
+
     if mode == 'elsevier':
       if self.check_els_entitlement(doi):
         try:
           pdf_url='http://api.elsevier.com/content/article/doi:' + doi + '?view=FULL'
-          self.headers['Accept'] = 'application/pdf'
+          headers = {
+            'X-ELS-APIKEY': self.els_api_key,
+            'Accept': 'application/pdf'
+          }
 
-          r = requests.get(pdf_url, stream=True, headers=self.headers)
+          r = requests.get(pdf_url, stream=True, headers=headers)
           if r.status_code == 200:
             for chunk in r.iter_content(2048):
               writefile.write(chunk)
@@ -148,15 +164,14 @@ class ArticleDownloader:
         except:
           # API download limit exceeded
           return False
-
-        return False
+      return False
 
     if mode == 'rsc':
       scraper = scrapers.RSC()
       scrape_url = 'http://dx.doi.org/' + doi
       download_url = None
 
-      r = requests.get(scrape_url, headers=self.headers)
+      r = requests.get(scrape_url)
       if r.status_code == 200:
         scraper.feed(r.content)
 
@@ -164,7 +179,10 @@ class ArticleDownloader:
           download_url = scraper.download_link
 
       if download_url is not None:
-        r = requests.get(download_url, stream=True, headers=self.headers)
+        headers = {
+          'Accept': 'application/pdf'
+        }
+        r = requests.get(download_url, stream=True, headers=headers)
         if r.status_code == 200:
           try:
             for chunk in r.iter_content(2048):
@@ -180,8 +198,10 @@ class ArticleDownloader:
       api_url = base_url + doi + '.pdf'
 
       try:
-        self.headers['Accept'] = 'application/pdf'
-        r = requests.get(api_url, stream=True, headers=self.headers)
+        headers = {
+          'Accept': 'application/pdf'
+        }
+        r = requests.get(api_url, stream=True, headers=headers)
         if r.status_code == 200:
           for chunk in r.iter_content(2048):
             writefile.write(chunk)
@@ -189,6 +209,8 @@ class ArticleDownloader:
       except:
         return False
       return False
+
+    return False
 
   @traced
   def get_abstract_from_doi(self, doi, mode):
@@ -209,9 +231,13 @@ class ArticleDownloader:
       if self.check_els_entitlement(doi):
         try:
           url='http://api.elsevier.com/content/article/doi:' + doi + '?view=FULL'
-          self.headers['Accept'] = 'application/json'
 
-          r = requests.get(url, headers=self.headers)
+          headers = {
+            'X-ELS-APIKEY': self.els_api_key,
+            'Accept': 'application/json'
+          }
+
+          r = requests.get(url, headers=headers)
           if r.status_code == 200:
             abstract = unicode(json.loads(r.text)['full-text-retrieval-response']['coredata']['dc:description'])
             return abstract
@@ -239,9 +265,12 @@ class ArticleDownloader:
     if mode == 'crossref':
       try:
         url='http://api.crossref.org/works/' + doi
-        self.headers['Accept'] = 'application/json'
+        headers = {
+          'X-ELS-APIKEY': self.els_api_key,
+          'Accept': 'application/json'
+        }
 
-        r = requests.get(url, headers=self.headers)
+        r = requests.get(url, headers=headers)
         if r.status_code == 200:
           title = unicode(r.json()['message']['title'][0])
           return title
