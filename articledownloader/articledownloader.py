@@ -1,7 +1,6 @@
 import requests
 import re
 import json
-import settings
 import scrapers
 from autologging import logged, traced
 from csv import reader
