@@ -21,6 +21,8 @@ class Tester(TestCase):
     self.downloader.get_pdf_from_doi(self.doi, self.pdf_file, 'elsevier')
     self.downloader.get_pdf_from_doi(self.doi, self.pdf_file, 'crossref')
     self.downloader.get_pdf_from_doi(self.doi, self.pdf_file, 'rsc')
+    self.downloader.get_pdf_from_doi(self.doi, self.pdf_file, 'ecs')
+    self.downloader.get_pdf_from_doi(self.doi, self.pdf_file, 'springer')
 
   def test_abstract_download(self):
     self.downloader.get_abstract_from_doi(self.doi, 'elsevier')

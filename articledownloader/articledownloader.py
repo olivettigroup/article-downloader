@@ -192,6 +192,33 @@ class ArticleDownloader:
 
       return False
 
+    if mode == 'ecs':
+      scraper = scrapers.ECS()
+      scrape_url = 'http://dx.doi.org/' + doi
+      download_url = None
+
+      r = requests.get(scrape_url)
+      if r.status_code == 200:
+        scraper.feed(r.content)
+
+        if scraper.download_link is not None:
+          download_url = scraper.download_link
+
+      if download_url is not None:
+        headers = {
+          'Accept': 'application/pdf'
+        }
+        r = requests.get(download_url, stream=True, headers=headers)
+        if r.status_code == 200:
+          try:
+            for chunk in r.iter_content(2048):
+              writefile.write(chunk)
+            return True
+          except:
+            return False
+
+      return False
+
     if mode == 'springer':
       base_url = 'http://link.springer.com/'
       api_url = base_url + doi + '.pdf'
