@@ -83,10 +83,14 @@ class ArticleDownloader:
       cursor = '*'
 
       while not stop_query:
+        max_pings = 10
+        pings = 0
         stop_ping = False
         search_url = base_url + query + '&rows=' + str(max_rows) + '&cursor=' + cursor
 
         while not stop_ping:
+          pings += 1
+          if pings > max_pings: stop_ping = True
           response = requests.get(search_url, headers=headers)
           try:
             j_response = response.json()
