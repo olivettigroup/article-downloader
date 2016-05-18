@@ -83,27 +83,16 @@ class ArticleDownloader:
       cursor = '*'
 
       while not stop_query:
-        max_pings = 10
-        pings = 0
-        stop_ping = False
         search_url = base_url + query + '&rows=' + str(max_rows) + '&cursor=' + cursor
-
-        while not stop_ping:
-          pings += 1
-          if pings > max_pings: stop_ping = True
-          response = requests.get(search_url, headers=headers)
-          try:
-            j_response = response.json()
-            cursor = j_response['message']['next-cursor']
-            stop_ping = True
-          except Exception, e:
-            self.__logger.warning(e)
-
-        if len(j_response["message"]["items"]) < max_rows or len(dois) >= rows:
+        response = requests.get(search_url, headers=headers)
+        try:
+          j_response = response.json()
+          cursor = j_response['message']['next-cursor']
+          if len(j_response["message"]["items"]) < max_rows or len(dois) >= rows: stop_query = True
+          for item in j_response["message"]["items"]: dois.append(item["DOI"])
+        except Exception, e:
+          self.__logger.warning(str(e) + str(response.text))
           stop_query = True
-
-        for item in j_response["message"]["items"]:
-          dois.append(item["DOI"])
 
     return list(set(dois))
 
