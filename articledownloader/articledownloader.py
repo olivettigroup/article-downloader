@@ -139,7 +139,7 @@ class ArticleDownloader:
         try:
           j_response = response.json()
           offset += max_rows
-          if len(dois) >= rows: stop_query = True
+          if len(dois) >= rows or offset >= rows: stop_query = True
           for item in j_response["message"]["items"]: dois.append(item["DOI"])
         except Exception, e:
           self.__logger.warning(str(e) + str(response.text))
