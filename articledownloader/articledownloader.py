@@ -80,15 +80,15 @@ class ArticleDownloader:
 
     else: #Need to split queries
       stop_query = False
-      cursor = '*'
+      offset = 0
 
       while not stop_query:
-        search_url = base_url + query + '&rows=' + str(max_rows) + '&cursor=' + cursor
+        search_url = base_url + query + '&rows=' + str(max_rows) + '&offset=' + str(offset)
         response = requests.get(search_url, headers=headers)
         try:
           j_response = response.json()
-          cursor = j_response['message']['next-cursor']
-          if len(j_response["message"]["items"]) < max_rows or len(dois) >= rows: stop_query = True
+          offset += max_rows
+          if len(dois) >= rows: stop_query = True
           for item in j_response["message"]["items"]: dois.append(item["DOI"])
         except Exception, e:
           self.__logger.warning(str(e) + str(response.text))
