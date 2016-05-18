@@ -97,6 +97,58 @@ class ArticleDownloader:
     return list(set(dois))
 
   @traced
+  def get_dois_from_journal_issn(self, issn, rows=500, pub_after=2000):
+    '''
+    Grabs a set of unique DOIs based on a journal ISSN using the CrossRef API
+
+    :param issn: The ISSN of the journal
+    :type issn: str
+
+    :param rows: the maximum number of DOIs to find
+    :type rows: int
+
+    :param pub_after: the minimum publication year for DOIs returned
+    :type pub_after: int
+
+    :returns: the unique set of DOIs as a list
+    :rtype: list
+    '''
+
+    dois = []
+    base_url = 'http://api.crossref.org/journals/' + issn + '/works?filter=has-license:true,has-full-text:true,from-pub-date:' + str(pub_after)
+    max_rows = 1000 #Defined by CrossRef API
+
+    headers = {
+      'Accept': 'application/json'
+    }
+
+    if rows <= max_rows: #No multi-query needed
+      search_url = str(base_url) + '&rows=' + str(rows)
+      response = requests.get(search_url, headers=headers).json()
+
+      for item in response["message"]["items"]:
+        dois.append(item["DOI"])
+
+    else: #Need to split queries
+      stop_query = False
+      offset = 0
+
+      while not stop_query:
+        search_url = base_url + '&rows=' + str(max_rows) + '&offset=' + str(offset)
+        response = requests.get(search_url, headers=headers)
+        try:
+          j_response = response.json()
+          offset += max_rows
+          if len(dois) >= rows: stop_query = True
+          for item in j_response["message"]["items"]: dois.append(item["DOI"])
+        except Exception, e:
+          self.__logger.warning(str(e) + str(response.text))
+          stop_query = True
+
+    return list(set(dois))
+
+
+  @traced
   def get_pdf_from_doi(self, doi, writefile, mode):
     '''
     Downloads and writes a PDF article to a file, given a DOI and operating mode
