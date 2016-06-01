@@ -12,10 +12,9 @@ class RSC(HTMLParser):
     '''
     PDF link handler; never gets explicity called by user
     '''
-    if tag == 'a' and ('title', 'PDF') in attrs:
-      for attr in attrs:
-        if attr[0] == 'href':
-          self.download_link = attr[1]
+    for attr in attrs:
+      if attr[0] == 'content':
+        if 'http://pubs.rsc.org/en/content/articlepdf/' in attr[1]: self.download_link = attr[1]
 
 class ECS(HTMLParser):
   '''
