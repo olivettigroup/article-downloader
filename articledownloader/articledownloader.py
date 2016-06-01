@@ -64,7 +64,7 @@ class ArticleDownloader:
     '''
 
     dois = []
-    base_url = 'http://api.crossref.org/works?filter=has-license:true,has-full-text:true&query='
+    base_url = 'http://api.crossref.org/works?query='
     max_rows = 1000 #Defined by CrossRef API
 
     headers = {
@@ -115,7 +115,7 @@ class ArticleDownloader:
     '''
 
     dois = []
-    base_url = 'http://api.crossref.org/journals/' + issn + '/works?filter=has-license:true,has-full-text:true,from-pub-date:' + str(pub_after)
+    base_url = 'http://api.crossref.org/journals/' + issn + '/works?filter=from-pub-date:' + str(pub_after)
     max_rows = 1000 #Defined by CrossRef API
 
     headers = {
