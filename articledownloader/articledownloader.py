@@ -265,18 +265,19 @@ class ArticleDownloader:
       return False
 
     if mode == 'springer':
-      base_url = 'http://link.springer.com/'
-      api_url = base_url + doi + '.pdf'
+      base_url = 'http://link.springer.com/content/pdf/'
+      api_url = base_url + doi
 
       try:
         headers = {
-          'Accept': 'application/pdf'
+          'Accept': 'application/pdf',
+          'User-agent': 'Mozilla/5.0'
         }
         r = requests.get(api_url, stream=True, headers=headers)
         if r.status_code == 200:
           for chunk in r.iter_content(2048):
             writefile.write(chunk)
-            return True
+          return True
       except:
         return False
       return False
