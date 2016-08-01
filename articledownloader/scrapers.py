@@ -32,3 +32,20 @@ class ECS(HTMLParser):
       for attr in attrs:
         if attr[0] == 'href':
           self.download_link = 'http://jes.ecsdl.org' + attr[1][:-5]
+
+class Nature(HTMLParser):
+  '''
+  Scraper for Nature publications
+  '''
+
+  download_link = None
+
+  #Nature scraping implementation
+  def handle_starttag(self, tag, attrs):
+    '''
+    PDF link handler; never gets explicity called by user
+    '''
+    if tag == 'a' and ( ('class', 'download-pdf') in attrs or ('id', 'download-pdf') in attrs ):
+        for attr in attrs:
+          if attr[0] == 'href':
+            self.download_link = 'http://www.nature.com' + attr[1]

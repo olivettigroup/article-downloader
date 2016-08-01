@@ -264,6 +264,53 @@ class ArticleDownloader:
 
       return False
 
+    if mode == 'nature':
+      scraper = scrapers.Nature()
+      scrape_url = 'http://dx.doi.org/' + doi
+      download_url = None
+
+      r = requests.get(scrape_url)
+      if r.status_code == 200:
+        scraper.feed(r.content)
+
+        if scraper.download_link is not None:
+          download_url = scraper.download_link
+
+      if download_url is not None:
+        headers = {
+          'Accept': 'application/pdf'
+        }
+        r = requests.get(download_url, stream=True, headers=headers)
+        if r.status_code == 200:
+          try:
+            for chunk in r.iter_content(2048):
+              writefile.write(chunk)
+            return True
+          except:
+            return False
+
+      return False
+
+    if mode == 'acs':
+      base_url = 'http://pubs.acs.org/doi/pdf/'
+      api_url = base_url + doi
+
+      try:
+        headers = {
+          'Accept': 'application/pdf',
+          'User-agent': 'Mozilla/5.0'
+        }
+        r = requests.get(api_url, stream=True, headers=headers)
+        if r.status_code == 200:
+          for chunk in r.iter_content(2048):
+            writefile.write(chunk)
+          return True
+      except:
+        return False
+      return False
+
+    return False
+
     if mode == 'springer':
       base_url = 'http://link.springer.com/content/pdf/'
       api_url = base_url + doi
