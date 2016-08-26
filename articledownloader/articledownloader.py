@@ -147,6 +147,42 @@ class ArticleDownloader:
 
     return list(set(dois))
 
+  @traced
+  def get_html_from_doi(self, doi, writefile, mode):
+    '''
+    Downloads and writes an HTML article to a file, given a DOI and operating mode
+
+    :param doi: DOI string for the article we want to download
+    :type doi: str
+
+    :param writefile: file object to write to
+    :type writefile: file
+
+    :param mode: either 'elsevier', depending on how we wish to access the file
+    :type mode: str
+
+    :returns: True on successful write, False otherwise
+    :rtype: bool
+    '''
+
+    if mode == 'elsevier':
+      if self.check_els_entitlement(doi):
+        try:
+          html_url='http://api.elsevier.com/content/article/doi:' + doi + '?view=FULL'
+          headers = {
+            'X-ELS-APIKEY': self.els_api_key,
+            'Accept': 'text/html'
+          }
+
+          r = requests.get(html_url, stream=True, headers=headers)
+          if r.status_code == 200:
+            for chunk in r.iter_content(2048):
+              writefile.write(chunk)
+            return True
+        except:
+          # API download limit exceeded
+          return False
+      return False
 
   @traced
   def get_pdf_from_doi(self, doi, writefile, mode):
