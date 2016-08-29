@@ -10,7 +10,7 @@ class RSC(HTMLParser):
   #RSC scraping implementation
   def handle_starttag(self, tag, attrs):
     '''
-    PDF link handler; never gets explicity called by user
+    PDF link handler; never gets explicitly called by user
     '''
     for attr in attrs:
       if attr[0] == 'content':
@@ -26,7 +26,7 @@ class ECS(HTMLParser):
   #ECS scraping implementation
   def handle_starttag(self, tag, attrs):
     '''
-    PDF link handler; never gets explicity called by user
+    PDF link handler; never gets explicitly called by user
     '''
     if tag == 'a' and ('rel', 'view-full-text.pdf') in attrs:
       for attr in attrs:
@@ -43,7 +43,7 @@ class Nature(HTMLParser):
   #Nature scraping implementation
   def handle_starttag(self, tag, attrs):
     '''
-    PDF link handler; never gets explicity called by user
+    PDF link handler; never gets explicitly called by user
     '''
     if tag == 'a' and ( ('class', 'download-pdf') in attrs or ('id', 'download-pdf') in attrs ):
         for attr in attrs:

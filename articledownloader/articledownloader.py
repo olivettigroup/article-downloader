@@ -158,7 +158,7 @@ class ArticleDownloader:
     :param writefile: file object to write to
     :type writefile: file
 
-    :param mode: either 'elsevier', depending on how we wish to access the file
+    :param mode: either 'elsevier' | 'springer' | 'acs' | 'rsc' | 'nature', depending on how we wish to access the file
     :type mode: str
 
     :returns: True on successful write, False otherwise
@@ -184,6 +184,89 @@ class ArticleDownloader:
           return False
       return False
 
+    if mode == 'springer':
+      base_url = 'http://link.springer.com/'
+      api_url = base_url + doi + '.html'
+
+      try:
+        headers = {
+          'Accept': 'text/html',
+          'User-agent': 'Mozilla/5.0'
+        }
+        r = requests.get(api_url, stream=True, headers=headers)
+        if r.status_code == 200:
+          for chunk in r.iter_content(2048):
+            writefile.write(chunk)
+          return True
+      except:
+        return False
+      return False
+
+    if mode == 'acs':
+      base_url = 'http://pubs.acs.org/doi/full/'
+      api_url = base_url + doi
+
+      try:
+        headers = {
+          'Accept': 'text/html',
+          'User-agent': 'Mozilla/5.0'
+        }
+        r = requests.get(api_url, stream=True, headers=headers)
+        if r.status_code == 200:
+          for chunk in r.iter_content(2048):
+            writefile.write(chunk)
+          return True
+      except:
+        return False
+      return False
+
+    if mode == 'rsc':
+      scraper = scrapers.RSC()
+      scrape_url = 'http://dx.doi.org/' + doi
+      download_url = None
+
+      r = requests.get(scrape_url)
+      if r.status_code == 200:
+        scraper.feed(r.content)
+
+        if scraper.download_link is not None:
+          download_url = scraper.download_link
+          download_url = download_url.replace('articlepdf', 'articlehtml') #Override for HTML mode
+
+      if download_url is not None:
+        headers = {
+          'Accept': 'text/html',
+          'User-agent': 'Mozilla/5.0'
+        }
+        r = requests.get(download_url, stream=True, headers=headers)
+        if r.status_code == 200:
+          try:
+            for chunk in r.iter_content(2048):
+              writefile.write(chunk)
+            return True
+          except:
+            return False
+
+      return False
+
+    if mode == 'nature':
+      download_url = 'http://dx.doi.org/' + doi
+
+      headers = {
+        'Accept': 'text/html'
+      }
+      r = requests.get(download_url, stream=True, headers=headers)
+      if r.status_code == 200:
+        try:
+          for chunk in r.iter_content(2048):
+            writefile.write(chunk)
+          return True
+        except:
+          return False
+      return False
+
+    return False
+
   @traced
   def get_pdf_from_doi(self, doi, writefile, mode):
     '''
@@ -195,7 +278,7 @@ class ArticleDownloader:
     :param writefile: file object to write to
     :type writefile: file
 
-    :param mode: either 'crossref' | 'elsevier' | 'rsc' | 'springer', depending on how we wish to access the file
+    :param mode: either 'crossref' | 'elsevier' | 'rsc' | 'springer' | 'ecs' | 'nature' | 'acs', depending on how we wish to access the file
     :type mode: str
 
     :returns: True on successful write, False otherwise
@@ -344,8 +427,6 @@ class ArticleDownloader:
       except:
         return False
       return False
-
-    return False
 
     if mode == 'springer':
       base_url = 'http://link.springer.com/content/pdf/'
