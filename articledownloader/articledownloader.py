@@ -158,7 +158,7 @@ class ArticleDownloader:
     :param writefile: file object to write to
     :type writefile: file
 
-    :param mode: either 'elsevier' | 'springer' | 'acs' | 'rsc' | 'nature', depending on how we wish to access the file
+    :param mode: either 'elsevier' | 'springer' | 'acs' | 'rsc' | 'nature' | 'wiley', depending on how we wish to access the file
     :type mode: str
 
     :returns: True on successful write, False otherwise
@@ -187,6 +187,24 @@ class ArticleDownloader:
     if mode == 'springer':
       base_url = 'http://link.springer.com/'
       api_url = base_url + doi + '.html'
+
+      try:
+        headers = {
+          'Accept': 'text/html',
+          'User-agent': 'Mozilla/5.0'
+        }
+        r = requests.get(api_url, stream=True, headers=headers)
+        if r.status_code == 200:
+          for chunk in r.iter_content(2048):
+            writefile.write(chunk)
+          return True
+      except:
+        return False
+      return False
+
+    if mode == 'wiley':
+      base_url = 'http://onlinelibrary.wiley.com/doi/'
+      api_url = base_url + doi + '/full'
 
       try:
         headers = {
