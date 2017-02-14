@@ -19,10 +19,6 @@ class Tester(TestCase):
   def test_download(self):
     #Single download test
     self.downloader.get_pdf_from_doi(self.doi, self.pdf_file, 'elsevier')
-    self.downloader.get_pdf_from_doi(self.doi, self.pdf_file, 'crossref')
-    self.downloader.get_pdf_from_doi(self.doi, self.pdf_file, 'rsc')
-    self.downloader.get_pdf_from_doi(self.doi, self.pdf_file, 'ecs')
-    self.downloader.get_pdf_from_doi(self.doi, self.pdf_file, 'springer')
 
   def test_abstract_download(self):
     self.downloader.get_abstract_from_doi(self.doi, 'elsevier')
@@ -35,7 +31,7 @@ class Tester(TestCase):
     #Search test
     queries = self.downloader.load_queries_from_csv(self.csv_file)
     for query in queries:
-      self.downloader.get_dois_from_search(query, rows=1000)
+      self.downloader.get_dois_from_search(query, rows=10)
 
   def tearDown(self):
     pass
