@@ -22,12 +22,15 @@ You can read the documentation for this repository [here](http://article-downloa
 ## Examples
 
 ### Downloading a single article
-    from articledownloader.articledownloader import ArticleDownloader
-    downloader = ArticleDownloader('your_API_key', 'your_other_API_key')
-    my_file = open('my_path/something.pdf', 'r')
 
-    downloader.get_pdf_from_doi('target_doi', my_file, 'crossref')
-    downloader.get_pdf_from_doi('target_doi', my_file, 'elsevier')
+```python
+from articledownloader.articledownloader import ArticleDownloader
+downloader = ArticleDownloader('your_API_key', 'your_other_API_key')
+my_file = open('my_path/something.pdf', 'r')
+
+downloader.get_pdf_from_doi('target_doi', my_file, 'crossref')
+downloader.get_pdf_from_doi('target_doi', my_file, 'elsevier')
+```
 
 ### Using search queries to find DOIs
 CSV file:
@@ -40,18 +43,19 @@ CSV file:
     .
 
 Python:
+```python
+from articledownloader.articledownloader import ArticleDownloader
+downloader = ArticleDownloader('your_API_key', 'your_other_API_key')
 
-    from articledownloader.articledownloader import ArticleDownloader
-    downloader = ArticleDownloader('your_API_key', 'your_other_API_key')
+#grab up to 5 articles per search
+queries = downloader.load_queries_from_csv(open('path_to_csv_file', 'r'))
 
-    #grab up to 5 articles per search
-    queries = downloader.load_queries_from_csv(open('path_to_csv_file', 'r'))
+dois = []
+for query in queries:
+  dois.append(downloader.get_dois_from_search(query))
 
-    dois = []
-    for query in queries:
-      dois.append(downloader.get_dois_from_search(query))
-
-    for i, doi in enumerate(dois):
-        file = open(str(i) + '.pdf', 'w')
-        downloader.get_pdf_from_doi(doi, file, 'crossref') #or 'elsevier'
-        file.close()
+for i, doi in enumerate(dois):
+    file = open(str(i) + '.pdf', 'w')
+    downloader.get_pdf_from_doi(doi, file, 'crossref') #or 'elsevier'
+    file.close()
+```
