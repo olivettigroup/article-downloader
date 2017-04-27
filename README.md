@@ -55,7 +55,7 @@ for query in queries:
   dois.append(downloader.get_dois_from_search(query))
 
 for i, doi in enumerate(dois):
-    file = open(str(i) + '.pdf', 'w')
-    downloader.get_pdf_from_doi(doi, file, 'crossref') #or 'elsevier'
-    file.close()
+    my_file = open(str(i) + '.pdf', 'w')
+    downloader.get_pdf_from_doi(doi, my_file, 'crossref') #or 'elsevier'
+    my_file.close()
 ```
