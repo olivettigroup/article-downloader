@@ -6,22 +6,22 @@ article-downloader
 Uses publisher APIs to programmatically retrieve large amounts of scientific journal articles for text mining.
 Primarily built for Elsevier's text mining API; support for other APIs is gradually being added.
 
-##Installation
+## Installation
 Use `pip install articledownloader`.
 
-##Usage
+## Usage
 Use the `ArticleDownloader` class to download articles. You'll need an API key, and please respect each publisher's terms of use.
 
 It's usually best to add your API key to your environment variables with something like `export API_KEY=xxxxx`.
 
 You can find DOIs using a CSV where the first column corresponds to search queries, and these queries will be used to find articles and retrieve their DOIs.
 
-##Documentation
+## Documentation
 You can read the documentation for this repository [here](http://article-downloader.readthedocs.org/en/latest/).
 
-##Examples
+## Examples
 
-###Downloading a single article
+### Downloading a single article
     from articledownloader.articledownloader import ArticleDownloader
     downloader = ArticleDownloader('your_API_key', 'your_other_API_key')
     my_file = open('my_path/something.pdf', 'r')
@@ -29,7 +29,7 @@ You can read the documentation for this repository [here](http://article-downloa
     downloader.get_pdf_from_doi('target_doi', my_file, 'crossref')
     downloader.get_pdf_from_doi('target_doi', my_file, 'elsevier')
 
-###Using search queries to find DOIs
+### Using search queries to find DOIs
 CSV file:
 
     search query 001,
