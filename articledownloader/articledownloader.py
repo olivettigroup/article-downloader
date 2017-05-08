@@ -158,7 +158,7 @@ class ArticleDownloader:
     :param writefile: file object to write to
     :type writefile: file
 
-    :param mode: either 'elsevier' | 'springer' | 'acs' | 'rsc' | 'nature' | 'wiley', depending on how we wish to access the file
+    :param mode: either 'elsevier' | 'springer' | 'acs' | 'ecs' | 'rsc' | 'nature' | 'wiley' | 'aaas', depending on how we wish to access the file
     :type mode: str
 
     :returns: True on successful write, False otherwise
@@ -273,6 +273,51 @@ class ArticleDownloader:
       headers = {
         'Accept': 'text/html'
       }
+      r = requests.get(download_url, stream=True, headers=headers)
+      if r.status_code == 200:
+        try:
+          for chunk in r.iter_content(2048):
+            writefile.write(chunk)
+          return True
+        except:
+          return False
+      return False
+
+    return False
+
+    if mode == 'aaas':
+
+      headers = {
+        'Accept': 'text/html'
+      }
+
+      article_url = 'http://dx.doi.org/' + doi
+      resp = requests.get(article_url, headers=headers)
+
+      download_url = resp.url + doi + '.full'  #Capture fulltext from redirect
+
+      r = requests.get(download_url, stream=True, headers=headers)
+      if r.status_code == 200:
+        try:
+          for chunk in r.iter_content(2048):
+            writefile.write(chunk)
+          return True
+        except:
+          return False
+      return False
+
+    return False
+
+    if mode == 'ecs':
+      headers = {
+        'Accept': 'text/html'
+      }
+
+      article_url = 'http://dx.doi.org/' + doi
+      resp = requests.get(article_url, headers=headers)
+
+      download_url = resp.url + doi + '.full'  #Capture fulltext from redirect
+
       r = requests.get(download_url, stream=True, headers=headers)
       if r.status_code == 200:
         try:
