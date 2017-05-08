@@ -271,7 +271,8 @@ class ArticleDownloader:
       download_url = 'http://dx.doi.org/' + doi
 
       headers = {
-        'Accept': 'text/html'
+        'Accept': 'text/html',
+        'User-agent': 'Mozilla/5.0'
       }
       r = requests.get(download_url, stream=True, headers=headers)
       if r.status_code == 200:
@@ -288,7 +289,8 @@ class ArticleDownloader:
     if mode == 'aaas':
 
       headers = {
-        'Accept': 'text/html'
+        'Accept': 'text/html',
+        'User-agent': 'Mozilla/5.0'
       }
 
       article_url = 'http://dx.doi.org/' + doi
@@ -310,7 +312,8 @@ class ArticleDownloader:
 
     if mode == 'ecs':
       headers = {
-        'Accept': 'text/html'
+        'Accept': 'text/html',
+        'User-agent': 'Mozilla/5.0'
       }
 
       article_url = 'http://dx.doi.org/' + doi
