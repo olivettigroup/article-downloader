@@ -9,7 +9,7 @@ from time import sleep
 @logged
 class ArticleDownloader:
 
-  def __init__(self, els_api_key=None, crf_api_key=None):
+  def __init__(self, els_api_key=None, crf_api_key=None, timeout_sec=30):
     '''
     Initialize and set up API keys
 
@@ -20,6 +20,7 @@ class ArticleDownloader:
     '''
     self.els_api_key = els_api_key
     self.crf_api_key = crf_api_key
+    self.timeout_sec = timeout_sec
 
   @traced
   def check_els_entitlement(self, doi):
@@ -73,7 +74,7 @@ class ArticleDownloader:
 
     if rows <= max_rows: #No multi-query needed
       search_url = base_url + query + '&rows=' + str(rows)
-      response = requests.get(search_url, headers=headers, timeout=10).json()
+      response = requests.get(search_url, headers=headers, timeout=self.timeout_sec).json()
 
       for item in response["message"]["items"]:
         dois.append(item["DOI"])
@@ -84,7 +85,7 @@ class ArticleDownloader:
 
       while not stop_query:
         search_url = base_url + query + '&rows=' + str(max_rows) + '&offset=' + str(offset)
-        response = requests.get(search_url, headers=headers, timeout=10)
+        response = requests.get(search_url, headers=headers, timeout=self.timeout_sec)
         try:
           j_response = response.json()
           offset += max_rows
@@ -124,7 +125,7 @@ class ArticleDownloader:
 
     if rows <= max_rows: #No multi-query needed
       search_url = str(base_url) + '&rows=' + str(rows)
-      response = requests.get(search_url, headers=headers, timeout=10).json()
+      response = requests.get(search_url, headers=headers, timeout=self.timeout_sec).json()
 
       for item in response["message"]["items"]:
         dois.append(item["DOI"])
@@ -135,7 +136,7 @@ class ArticleDownloader:
 
       while not stop_query:
         search_url = base_url + '&rows=' + str(max_rows) + '&offset=' + str(offset)
-        response = requests.get(search_url, headers=headers, timeout=10)
+        response = requests.get(search_url, headers=headers, timeout=self.timeout_sec)
         try:
           j_response = response.json()
           offset += max_rows
@@ -174,7 +175,7 @@ class ArticleDownloader:
             'Accept': 'text/html'
           }
 
-          r = requests.get(html_url, stream=True, headers=headers, timeout=10)
+          r = requests.get(html_url, stream=True, headers=headers, timeout=self.timeout_sec)
           if r.status_code == 200:
             for chunk in r.iter_content(2048):
               writefile.write(chunk)
@@ -193,7 +194,7 @@ class ArticleDownloader:
           'Accept': 'text/html',
           'User-agent': 'Mozilla/5.0'
         }
-        r = requests.get(api_url, stream=True, headers=headers, timeout=10)
+        r = requests.get(api_url, stream=True, headers=headers, timeout=self.timeout_sec)
         if r.status_code == 200:
           for chunk in r.iter_content(2048):
             writefile.write(chunk)
@@ -211,7 +212,7 @@ class ArticleDownloader:
           'Accept': 'text/html',
           'User-agent': 'Mozilla/5.0'
         }
-        r = requests.get(api_url, stream=True, headers=headers, timeout=10)
+        r = requests.get(api_url, stream=True, headers=headers, timeout=self.timeout_sec)
         if r.status_code == 200:
           for chunk in r.iter_content(2048):
             writefile.write(chunk)
@@ -229,7 +230,7 @@ class ArticleDownloader:
           'Accept': 'text/html',
           'User-agent': 'Mozilla/5.0'
         }
-        r = requests.get(api_url, stream=True, headers=headers, timeout=10)
+        r = requests.get(api_url, stream=True, headers=headers, timeout=self.timeout_sec)
         if r.status_code == 200:
           for chunk in r.iter_content(2048):
             writefile.write(chunk)
@@ -243,7 +244,7 @@ class ArticleDownloader:
       scrape_url = 'http://dx.doi.org/' + doi
       download_url = None
 
-      r = requests.get(scrape_url, timeout=10)
+      r = requests.get(scrape_url, timeout=self.timeout_sec)
       if r.status_code == 200:
         scraper.feed(r.content)
 
@@ -256,7 +257,7 @@ class ArticleDownloader:
           'Accept': 'text/html',
           'User-agent': 'Mozilla/5.0'
         }
-        r = requests.get(download_url, stream=True, headers=headers, timeout=10)
+        r = requests.get(download_url, stream=True, headers=headers, timeout=self.timeout_sec)
         if r.status_code == 200:
           try:
             for chunk in r.iter_content(2048):
@@ -274,7 +275,7 @@ class ArticleDownloader:
         'Accept': 'text/html',
         'User-agent': 'Mozilla/5.0'
       }
-      r = requests.get(download_url, stream=True, headers=headers, timeout=10)
+      r = requests.get(download_url, stream=True, headers=headers, timeout=self.timeout_sec)
       if r.status_code == 200:
         try:
           for chunk in r.iter_content(2048):
@@ -294,11 +295,11 @@ class ArticleDownloader:
       }
 
       article_url = 'http://dx.doi.org/' + doi
-      resp = requests.get(article_url, headers=headers, timeout=10)
+      resp = requests.get(article_url, headers=headers, timeout=self.timeout_sec)
 
       download_url = resp.url + doi + '.full'  #Capture fulltext from redirect
 
-      r = requests.get(download_url, stream=True, headers=headers, timeout=10)
+      r = requests.get(download_url, stream=True, headers=headers, timeout=self.timeout_sec)
       if r.status_code == 200:
         try:
           for chunk in r.iter_content(2048):
@@ -317,11 +318,11 @@ class ArticleDownloader:
       }
 
       article_url = 'http://dx.doi.org/' + doi
-      resp = requests.get(article_url, headers=headers, timeout=10)
+      resp = requests.get(article_url, headers=headers, timeout=self.timeout_sec)
 
       download_url = resp.url + doi + '.full'  #Capture fulltext from redirect
 
-      r = requests.get(download_url, stream=True, headers=headers, timeout=10)
+      r = requests.get(download_url, stream=True, headers=headers, timeout=self.timeout_sec)
       if r.status_code == 200:
         try:
           for chunk in r.iter_content(2048):
@@ -361,7 +362,7 @@ class ArticleDownloader:
       }
 
       try:
-        response = json.loads(requests.get(api_url, headers=headers, timeout=10).text)
+        response = json.loads(requests.get(api_url, headers=headers, timeout=self.timeout_sec).text)
         pdf_url = response['message']['link'][0]['URL']
         app_type = str(response['message']['link'][0]['content-type'])
 
@@ -385,7 +386,7 @@ class ArticleDownloader:
             'Accept': 'application/pdf'
           }
 
-          r = requests.get(pdf_url, stream=True, headers=headers, timeout=10)
+          r = requests.get(pdf_url, stream=True, headers=headers, timeout=self.timeout_sec)
           if r.status_code == 200:
             for chunk in r.iter_content(2048):
               writefile.write(chunk)
@@ -400,7 +401,7 @@ class ArticleDownloader:
       scrape_url = 'http://dx.doi.org/' + doi
       download_url = None
 
-      r = requests.get(scrape_url, timeout=10)
+      r = requests.get(scrape_url, timeout=self.timeout_sec)
       if r.status_code == 200:
         scraper.feed(r.content)
 
@@ -411,7 +412,7 @@ class ArticleDownloader:
         headers = {
           'Accept': 'application/pdf'
         }
-        r = requests.get(download_url, stream=True, headers=headers, timeout=10)
+        r = requests.get(download_url, stream=True, headers=headers, timeout=self.timeout_sec)
         if r.status_code == 200:
           try:
             for chunk in r.iter_content(2048):
@@ -427,7 +428,7 @@ class ArticleDownloader:
       scrape_url = 'http://dx.doi.org/' + doi
       download_url = None
 
-      r = requests.get(scrape_url, timeout=10)
+      r = requests.get(scrape_url, timeout=self.timeout_sec)
       if r.status_code == 200:
         scraper.feed(r.content)
 
@@ -438,7 +439,7 @@ class ArticleDownloader:
         headers = {
           'Accept': 'application/pdf'
         }
-        r = requests.get(download_url, stream=True, headers=headers, timeout=10)
+        r = requests.get(download_url, stream=True, headers=headers, timeout=self.timeout_sec)
         if r.status_code == 200:
           try:
             for chunk in r.iter_content(2048):
@@ -454,7 +455,7 @@ class ArticleDownloader:
       scrape_url = 'http://dx.doi.org/' + doi
       download_url = None
 
-      r = requests.get(scrape_url, timeout=10)
+      r = requests.get(scrape_url, timeout=self.timeout_sec)
       if r.status_code == 200:
         scraper.feed(r.content)
 
@@ -465,7 +466,7 @@ class ArticleDownloader:
         headers = {
           'Accept': 'application/pdf'
         }
-        r = requests.get(download_url, stream=True, headers=headers, timeout=10)
+        r = requests.get(download_url, stream=True, headers=headers, timeout=self.timeout_sec)
         if r.status_code == 200:
           try:
             for chunk in r.iter_content(2048):
@@ -485,7 +486,7 @@ class ArticleDownloader:
           'Accept': 'application/pdf',
           'User-agent': 'Mozilla/5.0'
         }
-        r = requests.get(api_url, stream=True, headers=headers, timeout=10)
+        r = requests.get(api_url, stream=True, headers=headers, timeout=self.timeout_sec)
         if r.status_code == 200:
           for chunk in r.iter_content(2048):
             writefile.write(chunk)
@@ -503,7 +504,7 @@ class ArticleDownloader:
           'Accept': 'application/pdf',
           'User-agent': 'Mozilla/5.0'
         }
-        r = requests.get(api_url, stream=True, headers=headers, timeout=10)
+        r = requests.get(api_url, stream=True, headers=headers, timeout=self.timeout_sec)
         if r.status_code == 200:
           for chunk in r.iter_content(2048):
             writefile.write(chunk)
@@ -539,7 +540,7 @@ class ArticleDownloader:
             'Accept': 'application/json'
           }
 
-          r = requests.get(url, headers=headers, timeout=10)
+          r = requests.get(url, headers=headers, timeout=self.timeout_sec)
           if r.status_code == 200:
             abstract = unicode(json.loads(r.text)['full-text-retrieval-response']['coredata']['dc:description'])
             return abstract
@@ -572,7 +573,7 @@ class ArticleDownloader:
           'Accept': 'application/json'
         }
 
-        r = requests.get(url, headers=headers, timeout=10)
+        r = requests.get(url, headers=headers, timeout=self.timeout_sec)
         if r.status_code == 200:
           title = unicode(r.json()['message']['title'][0])
           return title
