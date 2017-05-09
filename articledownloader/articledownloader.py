@@ -1,4 +1,5 @@
 import requests
+from requests.utils import quote
 import re
 import json
 import scrapers
@@ -600,13 +601,8 @@ class ArticleDownloader:
     queries = []
     for line in csvreader:
       #Build search query (assume 1st column is queries)
-      query = re.sub('\[\]\=\,\.0-9\>\<\:]', '', line[0])
-      query = re.sub('\(.*?\)', '', query)
-      query = re.sub('\/', '\s', query)
+      query = quote(line[0])
       query = query.split()
-
-      #filter out short words and long words
-      query = [word for word in query if 3 < len(word) < 15]
       query = '+'.join(query)
 
       final_query = query
