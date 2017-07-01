@@ -3,11 +3,16 @@ article-downloader
 [![Circle CI](https://circleci.com/gh/olivettigroup/article-downloader.svg?style=svg&circle-token=c5aed981b2738abfba780c85e74c89a11c8debe6)](https://circleci.com/gh/olivettigroup/article-downloader) [![Documentation Status](https://readthedocs.org/projects/article-downloader/badge/?version=latest)](https://readthedocs.org/projects/article-downloader/?badge=latest) [![DOI](https://zenodo.org/badge/19479/eddotman/article-downloader.svg)](https://zenodo.org/badge/latestdoi/19479/eddotman/article-downloader)
 
 
-Uses publisher APIs to programmatically retrieve large amounts of scientific journal articles for text mining.
-Primarily built for Elsevier's text mining API; support for other APIs is gradually being added.
+Uses publisher-approved APIs to programmatically retrieve large amounts of scientific journal articles for text mining.
+Exposes a top-level `ArticleDownloader` class which provides methods for retrieving lists of DOIs (== unique article IDs) from text search queries, downloading HTML and PDF articles given DOIs, and programmatically sweeping through search parameters for large scale downloading.
+
+**Important Note**: This package is only intended to be used for publisher-approved text-mining activities! The code in this repository only provides an interface to existing publisher APIs and web routes; *you need your own set of API keys / permissions to download articles from any source that isn't open-access*.
+
+## Full API Documentation
+You can read the documentation for this repository [here](http://article-downloader.readthedocs.io/en/latest/articledownloader.articledownloader.html).
 
 ## Installation
-Use `pip install articledownloader`.
+Use `pip install articledownloader`. If you don't have `pip` installed, you could also download the ZIP containing all the files in this repo and manually import the `ArticleDownloader` class into your own Python code.
 
 ## Usage
 Use the `ArticleDownloader` class to download articles. You'll need an API key, and please respect each publisher's terms of use.
@@ -16,16 +21,13 @@ It's usually best to add your API key to your environment variables with somethi
 
 You can find DOIs using a CSV where the first column corresponds to search queries, and these queries will be used to find articles and retrieve their DOIs.
 
-## Documentation
-You can read the documentation for this repository [here](http://article-downloader.readthedocs.org/en/latest/).
-
 ## Examples
 
 ### Downloading a single article
 
 ```python
 from articledownloader.articledownloader import ArticleDownloader
-downloader = ArticleDownloader('your_API_key', 'your_other_API_key')
+downloader = ArticleDownloader(els_api_key='your_elsevier_API_key',crf_api_key='your_crossref_API_key')
 my_file = open('my_path/something.pdf', 'r')
 
 downloader.get_pdf_from_doi('target_doi', my_file, 'crossref')
