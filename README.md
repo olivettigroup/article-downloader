@@ -23,15 +23,40 @@ You can find DOIs using a CSV where the first column corresponds to search queri
 
 ## Examples
 
-### Downloading a single article
+### Downloading a single PDF article
 
 ```python
 from articledownloader.articledownloader import ArticleDownloader
-downloader = ArticleDownloader(els_api_key='your_elsevier_API_key',crf_api_key='your_crossref_API_key')
-my_file = open('my_path/something.pdf', 'r')
+downloader = ArticleDownloader(els_api_key='your_elsevier_API_key', crf_api_key='your_crossref_API_key')
+my_file = open('my_path/something.pdf', 'w')
 
-downloader.get_pdf_from_doi('target_doi', my_file, 'crossref')
-downloader.get_pdf_from_doi('target_doi', my_file, 'elsevier')
+downloader.get_pdf_from_doi('my_doi', my_file, 'crossref')
+```
+
+### Downloading a single HTML article
+
+```python
+from articledownloader.articledownloader import ArticleDownloader
+downloader = ArticleDownloader(els_api_key='your_elsevier_API_key', crf_api_key='your_crossref_API_key')
+my_file = open('my_path/something.html', 'w')
+
+downloader.get_html_from_doi('my_doi', my_file, 'elsevier')
+```
+
+### Getting metadata
+
+```python
+from articledownloader.articledownloader import ArticleDownloader
+downloader = ArticleDownloader(els_api_key='your_elsevier_API_key', crf_api_key='your_crossref_API_key')
+
+#Get 500 DOIs from articles published after the year 2000 from a single journal
+downloader.get_dois_from_journal_issn('journal_issn', rows=500, pub_after=2000)
+
+#Get the title for a single article (only works with CrossRef for now)
+downloader.get_title_from_doi('my_doi', 'crossref')
+
+#Get the abstract for a single article (only works with Elsevier for now)
+downloader.get_abstract_from_doi('my_doi', 'elsevier')
 ```
 
 ### Using search queries to find DOIs
