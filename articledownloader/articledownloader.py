@@ -14,10 +14,12 @@ class ArticleDownloader:
     '''
     Initialize and set up API keys
 
-    :param els_api_key: API key for Elsevier
+    :param els_api_key: API key for Elsevier (for Elsevier's API)
     :type els_api_key: str
-    :param crf_api_key: API key for CrossRef
+    :param crf_api_key: API key for CrossRef (For DOI/metadata searches)
     :type crf_api_key: str
+    :param timeout_sec: Wait time between API queries (default = 30s)
+    :type timeout_sec: int
     '''
     self.els_api_key = els_api_key
     self.crf_api_key = crf_api_key
