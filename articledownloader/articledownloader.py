@@ -162,7 +162,7 @@ class ArticleDownloader:
     :param writefile: file object to write to
     :type writefile: file
 
-    :param mode: either 'elsevier' | 'springer' | 'acs' | 'ecs' | 'rsc' | 'nature' | 'wiley' | 'aaas', depending on how we wish to access the file
+    :param mode: either 'elsevier' | 'springer' | 'acs' | 'ecs' | 'rsc' | 'nature' | 'wiley' | 'aaas' | 'emerald', depending on how we wish to access the file
     :type mode: str
 
     :returns: True on successful write, False otherwise
@@ -226,6 +226,24 @@ class ArticleDownloader:
 
     if mode == 'acs':
       base_url = 'http://pubs.acs.org/doi/full/'
+      api_url = base_url + doi
+
+      try:
+        headers = {
+          'Accept': 'text/html',
+          'User-agent': 'Mozilla/5.0'
+        }
+        r = requests.get(api_url, stream=True, headers=headers, timeout=self.timeout_sec)
+        if r.status_code == 200:
+          for chunk in r.iter_content(2048):
+            writefile.write(chunk)
+          return True
+      except:
+        return False
+      return False
+
+    if mode == 'emerald':
+      base_url = 'http://www.emeraldinsight.com/doi/full/'
       api_url = base_url + doi
 
       try:
