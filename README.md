@@ -28,7 +28,7 @@ You can find DOIs using a CSV where the first column corresponds to search queri
 ```python
 from articledownloader.articledownloader import ArticleDownloader
 downloader = ArticleDownloader(els_api_key='your_elsevier_API_key', crf_api_key='your_crossref_API_key')
-my_file = open('my_path/something.pdf', 'w')
+my_file = open('my_path/something.pdf', 'w')  # Need to use 'wb' on Windows
 
 downloader.get_pdf_from_doi('my_doi', my_file, 'crossref')
 ```
