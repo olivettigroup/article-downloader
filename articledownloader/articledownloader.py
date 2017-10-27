@@ -10,16 +10,19 @@ from time import sleep
 @logged
 class ArticleDownloader:
 
-  def __init__(self, els_api_key=None, timeout_sec=30):
+  def __init__(self, els_api_key=None, sleep_sec=1, timeout_sec=30):
     '''
     Initialize and set up API keys
 
     :param els_api_key: API key for Elsevier (for Elsevier's API)
     :type els_api_key: str
+    :param sleep_sec: Sleep time between API calls (default = 1s)
+    :type sleep_sec: int
     :param timeout_sec: Max time before timeout (default = 30s)
     :type timeout_sec: int
     '''
     self.els_api_key = els_api_key
+    self.sleep_sec = sleep_sec
     self.timeout_sec = timeout_sec
 
   @traced
@@ -83,7 +86,7 @@ class ArticleDownloader:
       cursor = "*"
       keep_paging = True
       while (keep_paging):
-        sleep(0.5)
+        sleep(self.sleep_sec)
         r = requests.get(base_url + query + "&rows=" + str(max_rows) + "&cursor=" + cursor,
                          headers=headers, timeout=self.timeout_sec)
         cursor = quote(r.json()['message']['next-cursor'], safe='')
@@ -132,7 +135,7 @@ class ArticleDownloader:
       cursor = "*"
       keep_paging = True
       while (keep_paging):
-        sleep(0.5)
+        sleep(self.sleep_sec)
         r = requests.get(base_url + "&rows=" + str(max_rows) + "&cursor=" + cursor,
                          headers=headers, timeout=self.timeout_sec)
         cursor = quote(r.json()['message']['next-cursor'], safe='')
