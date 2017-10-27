@@ -27,7 +27,7 @@ You can find DOIs using a CSV where the first column corresponds to search queri
 
 ```python
 from articledownloader.articledownloader import ArticleDownloader
-downloader = ArticleDownloader(els_api_key='your_elsevier_API_key', crf_api_key='your_crossref_API_key')
+downloader = ArticleDownloader(els_api_key='your_elsevier_API_key')
 my_file = open('my_path/something.pdf', 'w')  # Need to use 'wb' on Windows
 
 downloader.get_pdf_from_doi('my_doi', my_file, 'crossref')
@@ -37,7 +37,7 @@ downloader.get_pdf_from_doi('my_doi', my_file, 'crossref')
 
 ```python
 from articledownloader.articledownloader import ArticleDownloader
-downloader = ArticleDownloader(els_api_key='your_elsevier_API_key', crf_api_key='your_crossref_API_key')
+downloader = ArticleDownloader(els_api_key='your_elsevier_API_key')
 my_file = open('my_path/something.html', 'w')
 
 downloader.get_html_from_doi('my_doi', my_file, 'elsevier')
@@ -47,7 +47,7 @@ downloader.get_html_from_doi('my_doi', my_file, 'elsevier')
 
 ```python
 from articledownloader.articledownloader import ArticleDownloader
-downloader = ArticleDownloader(els_api_key='your_elsevier_API_key', crf_api_key='your_crossref_API_key')
+downloader = ArticleDownloader(els_api_key='your_elsevier_API_key')
 
 #Get 500 DOIs from articles published after the year 2000 from a single journal
 downloader.get_dois_from_journal_issn('journal_issn', rows=500, pub_after=2000)
@@ -72,7 +72,7 @@ CSV file:
 Python:
 ```python
 from articledownloader.articledownloader import ArticleDownloader
-downloader = ArticleDownloader('your_API_key', 'your_other_API_key')
+downloader = ArticleDownloader('your_API_key')
 
 #grab up to 5 articles per search
 queries = downloader.load_queries_from_csv(open('path_to_csv_file', 'r'))

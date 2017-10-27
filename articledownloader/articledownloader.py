@@ -10,19 +10,16 @@ from time import sleep
 @logged
 class ArticleDownloader:
 
-  def __init__(self, els_api_key=None, crf_api_key=None, timeout_sec=30):
+  def __init__(self, els_api_key=None, timeout_sec=30):
     '''
     Initialize and set up API keys
 
     :param els_api_key: API key for Elsevier (for Elsevier's API)
     :type els_api_key: str
-    :param crf_api_key: API key for CrossRef (For DOI/metadata searches)
-    :type crf_api_key: str
-    :param timeout_sec: Wait time between API queries (default = 30s)
+    :param timeout_sec: Max time before timeout (default = 30s)
     :type timeout_sec: int
     '''
     self.els_api_key = els_api_key
-    self.crf_api_key = crf_api_key
     self.timeout_sec = timeout_sec
 
   @traced
@@ -83,20 +80,18 @@ class ArticleDownloader:
         dois.append(item["DOI"])
 
     else: #Need to split queries
-      stop_query = False
-      offset = 0
+      cursor = "*"
+      keep_paging = True
+      while (keep_paging):
+        sleep(0.5)
+        r = requests.get(base_url + query + "&rows=" + str(max_rows) + "&cursor=" + cursor,
+                         headers=headers, timeout=self.timeout_sec)
+        cursor = quote(r.json()['message']['next-cursor'], safe='')
+        if len(r.json()['message']['items']) == 0:
+          keep_paging = False
 
-      while not stop_query:
-        search_url = base_url + query + '&rows=' + str(max_rows) + '&offset=' + str(offset)
-        response = requests.get(search_url, headers=headers, timeout=self.timeout_sec)
-        try:
-          j_response = response.json()
-          offset += max_rows
-          if len(dois) >= rows: stop_query = True
-          for item in j_response["message"]["items"]: dois.append(item["DOI"])
-        except Exception, e:
-          self.__logger.warning(str(e) + str(response.text))
-          stop_query = True
+        for item in r.json()['message']['items']:
+          dois.append(item['DOI'])
 
     return list(set(dois))
 
@@ -134,20 +129,18 @@ class ArticleDownloader:
         dois.append(item["DOI"])
 
     else: #Need to split queries
-      stop_query = False
-      offset = 0
+      cursor = "*"
+      keep_paging = True
+      while (keep_paging):
+        sleep(0.5)
+        r = requests.get(base_url + "&rows=" + str(max_rows) + "&cursor=" + cursor,
+                         headers=headers, timeout=self.timeout_sec)
+        cursor = quote(r.json()['message']['next-cursor'], safe='')
+        if len(r.json()['message']['items']) == 0:
+          keep_paging = False
 
-      while not stop_query:
-        search_url = base_url + '&rows=' + str(max_rows) + '&offset=' + str(offset)
-        response = requests.get(search_url, headers=headers, timeout=self.timeout_sec)
-        try:
-          j_response = response.json()
-          offset += max_rows
-          if len(dois) >= rows or offset >= rows: stop_query = True
-          for item in j_response["message"]["items"]: dois.append(item["DOI"])
-        except Exception, e:
-          self.__logger.warning(str(e) + str(response.text))
-          stop_query = True
+        for item in r.json()['message']['items']:
+          dois.append(item['DOI'])
 
     return list(set(dois))
 
@@ -378,7 +371,6 @@ class ArticleDownloader:
       api_url = base_url + doi
 
       headers = {
-        'CR-Clickthrough-Client-Token': self.crf_api_key,
         'Accept': 'application/json'
       }
 
