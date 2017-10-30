@@ -263,13 +263,13 @@ class ArticleDownloader:
       'Accept': 'text/html',
       'User-agent': 'Mozilla/5.0'
       }
-      r = requests.get(download_url, stream=true, header=header, timeout=self.time_sec)
+      r = requests.get(download_url, headers=headers, timeout=self.timeout_sec)
       url = r.url
       url = url.encode('ascii')
       url = url.split('/')
-      url = url[0] + '//' + url[2] + '/' + url[3] + '/' + y[4] + '/' + html_string + '/' + url[6] + '/' + url[7] + '/' + url[8]
+      url = url[0] + '//' + url[2] + '/' + url[3] + '/' + url[4] + '/' + html_string + '/' + url[6] + '/' + url[7] + '/' + url[8]
 
-      r = requests.get(url, stream=True, headers=header timeout=self.timeout_sec)
+      r = requests.get(url, stream=True, headers=headers, timeout=self.timeout_sec)
 
       if r.status_code == 200:
         try:
