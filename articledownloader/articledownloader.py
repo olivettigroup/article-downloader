@@ -257,11 +257,19 @@ class ArticleDownloader:
       return False
 
     if mode == 'rsc':
-      scraper = scrapers.RSC()
-      scrape_url = 'http://dx.doi.org/' + doi
-      download_url = None
+      html_string = 'articlehtml'
+      download_url = 'http://dx.doi.org/' + doi
+      headers = {
+      'Accept': 'text/html',
+      'User-agent': 'Mozilla/5.0'
+      }
+      r = requests.get(download_url, stream=true, header=header, timeout=self.time_sec)
+      url = r.url
+      url = url.encode('ascii')
+      url = url.split('/')
+      url = url[0] + '//' + url[2] + '/' + url[3] + '/' + y[4] + '/' + html_string + '/' + url[6] + '/' + url[7] + '/' + url[8]
 
-      r = requests.get(scrape_url, timeout=self.timeout_sec)
+      r = requests.get(sc, timeout=self.timeout_sec)
       if r.status_code == 200:
         scraper.feed(r.content)
 
