@@ -269,27 +269,15 @@ class ArticleDownloader:
       url = url.split('/')
       url = url[0] + '//' + url[2] + '/' + url[3] + '/' + y[4] + '/' + html_string + '/' + url[6] + '/' + url[7] + '/' + url[8]
 
-      r = requests.get(sc, timeout=self.timeout_sec)
+      r = requests.get(url, stream=True, headers=header timeout=self.timeout_sec)
+
       if r.status_code == 200:
-        scraper.feed(r.content)
-
-        if scraper.download_link is not None:
-          download_url = scraper.download_link
-          download_url = download_url.replace('articlepdf', 'articlehtml') #Override for HTML mode
-
-      if download_url is not None:
-        headers = {
-          'Accept': 'text/html',
-          'User-agent': 'Mozilla/5.0'
-        }
-        r = requests.get(download_url, stream=True, headers=headers, timeout=self.timeout_sec)
-        if r.status_code == 200:
-          try:
-            for chunk in r.iter_content(2048):
-              writefile.write(chunk)
-            return True
-          except:
-            return False
+        try:
+          for chunk in r.iter_content(2048):
+            writefile.write(chunk)
+          return True
+        except:
+          return False
 
       return False
 
