@@ -298,8 +298,6 @@ class ArticleDownloader:
           return False
       return False
 
-    return False
-
     if mode == 'aaas':
 
       headers = {
@@ -322,8 +320,6 @@ class ArticleDownloader:
           return False
       return False
 
-    return False
-
     if mode == 'ecs':
       headers = {
         'Accept': 'text/html',
@@ -333,7 +329,7 @@ class ArticleDownloader:
       article_url = 'http://dx.doi.org/' + doi
       resp = requests.get(article_url, headers=headers, timeout=self.timeout_sec)
 
-      download_url = resp.url + doi + '.full'  #Capture fulltext from redirect
+      download_url = resp.url + '.full'  #Capture fulltext from redirect
 
       r = requests.get(download_url, stream=True, headers=headers, timeout=self.timeout_sec)
       if r.status_code == 200:
