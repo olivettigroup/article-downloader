@@ -168,7 +168,7 @@ class ArticleDownloader:
     if mode == 'elsevier':
       if self.check_els_entitlement(doi):
         try:
-          html_url='http://api.elsevier.com/content/article/doi:' + doi + '?view=FULL'
+          html_url='http://api.elsevier.com/content/article/doi/' + doi + '?view=FULL'
           headers = {
             'X-ELS-APIKEY': self.els_api_key,
             'Accept': 'text/html'
