@@ -148,6 +148,45 @@ class ArticleDownloader:
     return list(set(dois))
 
   @traced
+  def get_xml_from_doi(self, doi, writefile, mode):
+    '''
+    Downloads and writes an HTML article to a file, given a DOI and operating mode
+
+    :param doi: DOI string for the article we want to download
+    :type doi: str
+
+    :param writefile: file object to write to
+    :type writefile: file
+
+    :param mode: choose from {'elsevier'}, depending on how we wish to access the file
+    :type mode: str
+
+    :returns: True on successful write, False otherwise
+    :rtype: bool
+    '''
+
+    if mode == 'elsevier':
+      if self.check_els_entitlement(doi):
+        try:
+          xml_url='http://api.elsevier.com/content/article/doi/' + doi + '?view=FULL'
+          headers = {
+            'X-ELS-APIKEY': self.els_api_key,
+            'Accept': 'text/xml'
+          }
+
+          r = requests.get(xml_url, stream=True, headers=headers, timeout=self.timeout_sec)
+          if r.status_code == 200:
+            for chunk in r.iter_content(2048):
+              writefile.write(chunk)
+            return True
+        except:
+          # API download limit exceeded
+          return False
+      return False
+
+    return False
+
+  @traced
   def get_html_from_doi(self, doi, writefile, mode):
     '''
     Downloads and writes an HTML article to a file, given a DOI and operating mode
@@ -158,31 +197,12 @@ class ArticleDownloader:
     :param writefile: file object to write to
     :type writefile: file
 
-    :param mode: either 'elsevier' | 'springer' | 'acs' | 'ecs' | 'rsc' | 'nature' | 'wiley' | 'aaas' | 'emerald', depending on how we wish to access the file
+    :param mode: choose from {'elsevier' | 'springer' | 'acs' | 'ecs' | 'rsc' | 'nature' | 'wiley' | 'aaas' | 'emerald'}, depending on how we wish to access the file
     :type mode: str
 
     :returns: True on successful write, False otherwise
     :rtype: bool
     '''
-
-    if mode == 'elsevier':
-      if self.check_els_entitlement(doi):
-        try:
-          html_url='http://api.elsevier.com/content/article/doi/' + doi + '?view=FULL'
-          headers = {
-            'X-ELS-APIKEY': self.els_api_key,
-            'Accept': 'text/html'
-          }
-
-          r = requests.get(html_url, stream=True, headers=headers, timeout=self.timeout_sec)
-          if r.status_code == 200:
-            for chunk in r.iter_content(2048):
-              writefile.write(chunk)
-            return True
-        except:
-          # API download limit exceeded
-          return False
-      return False
 
     if mode == 'springer':
       base_url = 'http://link.springer.com/'
@@ -354,7 +374,7 @@ class ArticleDownloader:
     :param writefile: file object to write to
     :type writefile: file
 
-    :param mode: either 'crossref' | 'elsevier' | 'rsc' | 'springer' | 'ecs' | 'nature' | 'acs', depending on how we wish to access the file
+    :param mode: choose from {'crossref' | 'elsevier' | 'rsc' | 'springer' | 'ecs' | 'nature' | 'acs'}, depending on how we wish to access the file
     :type mode: str
 
     :returns: True on successful write, False otherwise
