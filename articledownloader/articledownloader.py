@@ -378,22 +378,21 @@ class ArticleDownloader:
       return False
 
     if mode == 'elsevier':
-      if self.check_els_entitlement(doi):
-        try:
-          pdf_url='http://api.elsevier.com/content/article/doi:' + doi + '?view=FULL'
-          headers = {
-            'X-ELS-APIKEY': self.els_api_key,
-            'Accept': 'application/pdf'
-          }
+      try:
+        pdf_url='http://api.elsevier.com/content/article/doi:' + doi + '?view=FULL'
+        headers = {
+          'X-ELS-APIKEY': self.els_api_key,
+          'Accept': 'application/pdf'
+        }
 
-          r = requests.get(pdf_url, stream=True, headers=headers, timeout=self.timeout_sec)
-          if r.status_code == 200:
-            for chunk in r.iter_content(2048):
-              writefile.write(chunk)
-            return True
-        except:
-          # API download limit exceeded
-          return False
+        r = requests.get(pdf_url, stream=True, headers=headers, timeout=self.timeout_sec)
+        if r.status_code == 200:
+          for chunk in r.iter_content(2048):
+            writefile.write(chunk)
+          return True
+      except:
+        # API download limit exceeded
+        return False
       return False
 
     if mode == 'rsc':
@@ -420,7 +419,6 @@ class ArticleDownloader:
             return True
           except:
             return False
-
       return False
 
     if mode == 'ecs':
@@ -531,24 +529,23 @@ class ArticleDownloader:
     '''
 
     if mode == 'elsevier':
-      if self.check_els_entitlement(doi):
-        try:
-          url='http://api.elsevier.com/content/article/doi:' + doi + '?view=FULL'
+      try:
+        url='http://api.elsevier.com/content/article/doi/' + doi + '?view=FULL'
 
-          headers = {
-            'X-ELS-APIKEY': self.els_api_key,
-            'Accept': 'application/json'
-          }
+        headers = {
+          'X-ELS-APIKEY': self.els_api_key,
+          'Accept': 'application/json'
+        }
 
-          r = requests.get(url, headers=headers, timeout=self.timeout_sec)
-          if r.status_code == 200:
-            abstract = unicode(json.loads(r.text)['full-text-retrieval-response']['coredata']['dc:description'])
-            return abstract
-        except:
-          # API download limit exceeded or no abstract exists
-          return None
-
+        r = requests.get(url, headers=headers, timeout=self.timeout_sec)
+        if r.status_code == 200:
+          abstract = unicode(json.loads(r.text)['full-text-retrieval-response']['coredata']['dc:description'])
+          return abstract
+      except:
+        # API download limit exceeded or no abstract exists
         return None
+
+      return None
 
   @traced
   def get_title_from_doi(self, doi, mode):
