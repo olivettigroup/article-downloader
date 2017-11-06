@@ -26,33 +26,6 @@ class ArticleDownloader:
     self.timeout_sec = timeout_sec
 
   @traced
-  def check_els_entitlement(self, doi):
-    '''
-    Checks entitlement for fulltext downloads on Elsevier's API
-
-    :param doi: Document Object Identifier (DOI) for the paper we are checking
-    :type doi: str
-
-    :rtype: bool
-    :returns: Whether or not we can download the article (True = Yes, No = False)
-    '''
-    url = 'http://api.elsevier.com/content/article/entitlement/doi/' + doi
-    headers = {
-      'X-ELS-APIKEY': self.els_api_key,
-      'Accept': 'application/json'
-    }
-
-    response = requests.get(url, headers=headers).json()
-
-    try:
-      if response['entitlement-response']['document-entitlement']['entitled'] == True:
-        return True
-      else:
-        return False
-    except:
-      return False
-
-  @traced
   def get_dois_from_search(self, query, rows=500):
     '''
     Grabs a set of unique DOIs based on a search query using the CrossRef API
@@ -166,22 +139,21 @@ class ArticleDownloader:
     '''
 
     if mode == 'elsevier':
-      if self.check_els_entitlement(doi):
-        try:
-          xml_url='http://api.elsevier.com/content/article/doi/' + doi + '?view=FULL'
-          headers = {
-            'X-ELS-APIKEY': self.els_api_key,
-            'Accept': 'text/xml'
-          }
+      try:
+        xml_url='http://api.elsevier.com/content/article/doi/' + doi + '?view=FULL'
+        headers = {
+          'X-ELS-APIKEY': self.els_api_key,
+          'Accept': 'text/xml'
+        }
 
-          r = requests.get(xml_url, stream=True, headers=headers, timeout=self.timeout_sec)
-          if r.status_code == 200:
-            for chunk in r.iter_content(2048):
-              writefile.write(chunk)
-            return True
-        except:
-          # API download limit exceeded
-          return False
+        r = requests.get(xml_url, stream=True, headers=headers, timeout=self.timeout_sec)
+        if r.status_code == 200:
+          for chunk in r.iter_content(2048):
+            writefile.write(chunk)
+          return True
+      except:
+        # API download limit exceeded
+        return False
       return False
 
     return False
