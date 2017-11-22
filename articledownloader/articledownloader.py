@@ -131,7 +131,7 @@ class ArticleDownloader:
     :param writefile: file object to write to
     :type writefile: file
 
-    :param mode: choose from {'elsevier'}, depending on how we wish to access the file
+    :param mode: choose from {'elsevier' | 'aps'}, depending on how we wish to access the file
     :type mode: str
 
     :returns: True on successful write, False otherwise
@@ -143,6 +143,23 @@ class ArticleDownloader:
         xml_url='http://api.elsevier.com/content/article/doi/' + doi + '?view=FULL'
         headers = {
           'X-ELS-APIKEY': self.els_api_key,
+          'Accept': 'text/xml'
+        }
+
+        r = requests.get(xml_url, stream=True, headers=headers, timeout=self.timeout_sec)
+        if r.status_code == 200:
+          for chunk in r.iter_content(2048):
+            writefile.write(chunk)
+          return True
+      except:
+        # API download limit exceeded
+        return False
+      return False
+
+    if mode == 'aps':
+      try:
+        xml_url='http://harvest.aps.org/v2/journals/articles/' + doi
+        headers = {
           'Accept': 'text/xml'
         }
 
