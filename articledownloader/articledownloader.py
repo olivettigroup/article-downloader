@@ -140,7 +140,7 @@ class ArticleDownloader:
 
     if mode == 'elsevier':
       try:
-        xml_url='http://api.elsevier.com/content/article/doi/' + doi + '?view=FULL'
+        xml_url='https://api.elsevier.com/content/article/doi/' + doi + '?view=FULL'
         headers = {
           'X-ELS-APIKEY': self.els_api_key,
           'Accept': 'text/xml'
