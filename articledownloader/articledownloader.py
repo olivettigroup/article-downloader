@@ -92,6 +92,9 @@ class ArticleDownloader:
     :param pub_after: the minimum publication year for DOIs returned
     :type pub_after: int
 
+    :param mailto: mailto address for API
+    :type rows: str
+
     :returns: the unique set of DOIs as a list
     :rtype: list
     '''
