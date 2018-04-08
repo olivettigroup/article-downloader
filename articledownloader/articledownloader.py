@@ -26,7 +26,7 @@ class ArticleDownloader:
     self.timeout_sec = timeout_sec
 
   @traced
-  def get_dois_from_search(self, query, rows=500):
+  def get_dois_from_search(self, query, rows=500, mailto="null@null.com"):
     '''
     Grabs a set of unique DOIs based on a search query using the CrossRef API
 
@@ -36,16 +36,23 @@ class ArticleDownloader:
     :param rows: the maximum number of DOIs to find
     :type rows: int
 
+    :param mailto: mailto address for API
+    :type rows: str
+
     :returns: the unique set of DOIs as a list
     :rtype: list
     '''
 
     dois = []
-    base_url = 'http://api.crossref.org/works?query='
+    base_url = 'https://api.crossref.org/works?query='
     max_rows = 1000 #Defined by CrossRef API
 
+    if mailto is not None:
+      base_url += "&"
+
     headers = {
-      'Accept': 'application/json'
+      'Accept': 'application/json',
+      'User-agent': 'mailto:' + mailto
     }
 
     if rows <= max_rows: #No multi-query needed
@@ -72,7 +79,7 @@ class ArticleDownloader:
     return list(set(dois))
 
   @traced
-  def get_dois_from_journal_issn(self, issn, rows=500, pub_after=2000):
+  def get_dois_from_journal_issn(self, issn, rows=500, pub_after=2000, mailto="null@null.com"):
     '''
     Grabs a set of unique DOIs based on a journal ISSN using the CrossRef API
 
@@ -90,11 +97,12 @@ class ArticleDownloader:
     '''
 
     dois = []
-    base_url = 'http://api.crossref.org/journals/' + issn + '/works?filter=from-pub-date:' + str(pub_after)
+    base_url = 'https://api.crossref.org/journals/' + issn + '/works?filter=from-pub-date:' + str(pub_after)
     max_rows = 1000 #Defined by CrossRef API
 
     headers = {
-      'Accept': 'application/json'
+      'Accept': 'application/json',
+      'User-agent': 'mailto:' + mailto
     }
 
     if rows <= max_rows: #No multi-query needed
