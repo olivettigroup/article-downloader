@@ -47,9 +47,6 @@ class ArticleDownloader:
     base_url = 'https://api.crossref.org/works?query='
     max_rows = 1000 #Defined by CrossRef API
 
-    if mailto is not None:
-      base_url += "&"
-
     headers = {
       'Accept': 'application/json',
       'User-agent': 'mailto:' + mailto
