@@ -275,7 +275,7 @@ class ArticleDownloader:
 
     if mode == 'rsc':
       html_string = 'articlehtml'
-      download_url = 'http://dx.doi.org/' + doi
+      download_url = 'https://doi.org/' + doi
       headers = {
       'Accept': 'text/html',
       'User-agent': 'Mozilla/5.0'
@@ -299,7 +299,7 @@ class ArticleDownloader:
       return False
 
     if mode == 'nature':
-      download_url = 'http://dx.doi.org/' + doi
+      download_url = 'https://doi.org/' + doi
 
       headers = {
         'Accept': 'text/html',
@@ -322,7 +322,7 @@ class ArticleDownloader:
         'User-agent': 'Mozilla/5.0'
       }
 
-      article_url = 'http://dx.doi.org/' + doi
+      article_url = 'https://doi.org/' + doi
       resp = requests.get(article_url, headers=headers, timeout=self.timeout_sec)
 
       download_url = resp.url + '.full'  #Capture fulltext from redirect
@@ -343,7 +343,7 @@ class ArticleDownloader:
         'User-agent': 'Mozilla/5.0'
       }
 
-      article_url = 'http://dx.doi.org/' + doi
+      article_url = 'https://doi.org/' + doi
       resp = requests.get(article_url, headers=headers, timeout=self.timeout_sec)
 
       download_url = resp.url + '.full'  #Capture fulltext from redirect
@@ -422,7 +422,7 @@ class ArticleDownloader:
 
     if mode == 'rsc':
       scraper = scrapers.RSC()
-      scrape_url = 'http://dx.doi.org/' + doi
+      scrape_url = 'https://doi.org/' + doi
       download_url = None
 
       r = requests.get(scrape_url, timeout=self.timeout_sec)
@@ -448,7 +448,7 @@ class ArticleDownloader:
 
     if mode == 'ecs':
       scraper = scrapers.ECS()
-      scrape_url = 'http://dx.doi.org/' + doi
+      scrape_url = 'https://doi.org/' + doi
       download_url = None
 
       r = requests.get(scrape_url, timeout=self.timeout_sec)
@@ -475,7 +475,7 @@ class ArticleDownloader:
 
     if mode == 'nature':
       scraper = scrapers.Nature()
-      scrape_url = 'http://dx.doi.org/' + doi
+      scrape_url = 'https://doi.org/' + doi
       download_url = None
 
       r = requests.get(scrape_url, timeout=self.timeout_sec)
