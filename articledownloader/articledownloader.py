@@ -129,6 +129,78 @@ class ArticleDownloader:
     return list(set(dois))
 
   @traced
+  def get_metadata_from_journal_issn(self, issn, rows=500, pub_after=2000, mailto="null@null.com"):
+    '''
+    Grabs metadata based on a journal ISSN using the CrossRef API
+
+    :param issn: The ISSN of the journal
+    :type issn: str
+
+    :param rows: the maximum number of DOIs to find
+    :type rows: int
+
+    :param pub_after: the minimum publication year for DOIs returned
+    :type pub_after: int
+
+    :param mailto: mailto address for API
+    :type rows: str
+
+    :returns: the metadata for the articles according to this ISSN
+    :rtype: list
+    '''
+
+    metadata_records = []
+    base_url = 'https://api.crossref.org/journals/' + issn + '/works?filter=from-pub-date:' + str(pub_after)
+    max_rows = 1000 #Defined by CrossRef API
+
+    headers = {
+      'Accept': 'application/json',
+      'User-agent': 'mailto:' + mailto
+    }
+
+    if rows <= max_rows: #No multi-query needed
+      search_url = str(base_url) + '&rows=' + str(rows)
+      response = requests.get(search_url, headers=headers, timeout=self.timeout_sec).json()
+
+      for item in response["message"]["items"]:
+        try:
+          metadata_records.append({
+            "doi": item["DOI"],
+            "issn": item["ISSN"],
+            "title": item["title"][0],
+            "prefix": item["prefix"],
+            "journal": item["container-title"][0],
+            "publisher": item["publisher"]
+          })
+        except:
+          pass
+    else: #Need to split queries
+      cursor = "*"
+      keep_paging = True
+      while (keep_paging):
+        sleep(self.sleep_sec)
+        r = requests.get(base_url + "&rows=" + str(max_rows) + "&cursor=" + cursor,
+                         headers=headers, timeout=self.timeout_sec)
+        cursor = quote(r.json()['message']['next-cursor'], safe='')
+        if len(r.json()['message']['items']) == 0:
+          keep_paging = False
+
+        for item in r.json()['message']['items']:
+          try:
+            metadata_records.append({
+              "doi": item["DOI"],
+              "issn": item["ISSN"],
+              "title": item["title"][0],
+              "prefix": item["prefix"],
+              "journal": item["container-title"][0],
+              "publisher": item["publisher"]
+            })
+          except:
+            pass
+
+    return metadata_records
+
+  @traced
   def get_xml_from_doi(self, doi, writefile, mode):
     '''
     Downloads and writes an HTML article to a file, given a DOI and operating mode
