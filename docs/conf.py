@@ -56,7 +56,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'article-downloader'
-copyright = u'2015, MIT DMSE'
+copyright = u'2018, MIT DMSE'
 author = u'MIT DMSE'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -83,7 +83,7 @@ language = None
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
-exclude_patterns = ['_build']
+exclude_patterns = []
 
 # The reST default role (used for this markup: `text`) to use for all
 # documents.
