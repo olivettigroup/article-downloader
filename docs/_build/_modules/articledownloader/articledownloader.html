@@ -1,0 +1,914 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>articledownloader.articledownloader &mdash; article-downloader 1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> article-downloader
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../articledownloader.articledownloader.html">articledownloader.articledownloader module</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">article-downloader</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>articledownloader.articledownloader</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for articledownloader.articledownloader</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">requests</span>
+<span class="kn">from</span> <span class="nn">requests.utils</span> <span class="k">import</span> <span class="n">quote</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">scrapers</span>
+<span class="kn">from</span> <span class="nn">autologging</span> <span class="k">import</span> <span class="n">logged</span><span class="p">,</span> <span class="n">traced</span>
+<span class="kn">from</span> <span class="nn">csv</span> <span class="k">import</span> <span class="n">reader</span>
+<span class="kn">from</span> <span class="nn">time</span> <span class="k">import</span> <span class="n">sleep</span>
+
+<div class="viewcode-block" id="ArticleDownloader"><a class="viewcode-back" href="../../articledownloader.articledownloader.html#articledownloader.articledownloader.ArticleDownloader">[docs]</a><span class="nd">@logged</span>
+<span class="k">class</span> <span class="nc">ArticleDownloader</span><span class="p">:</span>
+
+  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">els_api_key</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sleep_sec</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">timeout_sec</span><span class="o">=</span><span class="mi">30</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Initialize and set up API keys</span>
+
+<span class="sd">    :param els_api_key: API key for Elsevier (for Elsevier&#39;s API)</span>
+<span class="sd">    :type els_api_key: str</span>
+<span class="sd">    :param sleep_sec: Sleep time between API calls (default = 1s)</span>
+<span class="sd">    :type sleep_sec: int</span>
+<span class="sd">    :param timeout_sec: Max time before timeout (default = 30s)</span>
+<span class="sd">    :type timeout_sec: int</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">els_api_key</span> <span class="o">=</span> <span class="n">els_api_key</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">sleep_sec</span> <span class="o">=</span> <span class="n">sleep_sec</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">timeout_sec</span> <span class="o">=</span> <span class="n">timeout_sec</span>
+
+<div class="viewcode-block" id="ArticleDownloader.get_dois_from_search"><a class="viewcode-back" href="../../articledownloader.articledownloader.html#articledownloader.articledownloader.ArticleDownloader.get_dois_from_search">[docs]</a>  <span class="nd">@traced</span>
+  <span class="k">def</span> <span class="nf">get_dois_from_search</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="n">rows</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">mailto</span><span class="o">=</span><span class="s2">&quot;null@null.com&quot;</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Grabs a set of unique DOIs based on a search query using the CrossRef API</span>
+
+<span class="sd">    :param query: the search string</span>
+<span class="sd">    :type query: str</span>
+
+<span class="sd">    :param rows: the maximum number of DOIs to find</span>
+<span class="sd">    :type rows: int</span>
+
+<span class="sd">    :param mailto: mailto address for API</span>
+<span class="sd">    :type rows: str</span>
+
+<span class="sd">    :returns: the unique set of DOIs as a list</span>
+<span class="sd">    :rtype: list</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="n">dois</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">base_url</span> <span class="o">=</span> <span class="s1">&#39;https://api.crossref.org/works?query=&#39;</span>
+    <span class="n">max_rows</span> <span class="o">=</span> <span class="mi">1000</span> <span class="c1">#Defined by CrossRef API</span>
+
+    <span class="n">headers</span> <span class="o">=</span> <span class="p">{</span>
+      <span class="s1">&#39;Accept&#39;</span><span class="p">:</span> <span class="s1">&#39;application/json&#39;</span><span class="p">,</span>
+      <span class="s1">&#39;User-agent&#39;</span><span class="p">:</span> <span class="s1">&#39;mailto:&#39;</span> <span class="o">+</span> <span class="n">mailto</span>
+    <span class="p">}</span>
+
+    <span class="k">if</span> <span class="n">rows</span> <span class="o">&lt;=</span> <span class="n">max_rows</span><span class="p">:</span> <span class="c1">#No multi-query needed</span>
+      <span class="n">search_url</span> <span class="o">=</span> <span class="n">base_url</span> <span class="o">+</span> <span class="n">query</span> <span class="o">+</span> <span class="s1">&#39;&amp;rows=&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">rows</span><span class="p">)</span>
+      <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">search_url</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">timeout_sec</span><span class="p">)</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+
+      <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">response</span><span class="p">[</span><span class="s2">&quot;message&quot;</span><span class="p">][</span><span class="s2">&quot;items&quot;</span><span class="p">]:</span>
+        <span class="n">dois</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">item</span><span class="p">[</span><span class="s2">&quot;DOI&quot;</span><span class="p">])</span>
+
+    <span class="k">else</span><span class="p">:</span> <span class="c1">#Need to split queries</span>
+      <span class="n">cursor</span> <span class="o">=</span> <span class="s2">&quot;*&quot;</span>
+      <span class="n">keep_paging</span> <span class="o">=</span> <span class="kc">True</span>
+      <span class="k">while</span> <span class="p">(</span><span class="n">keep_paging</span><span class="p">):</span>
+        <span class="n">sleep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sleep_sec</span><span class="p">)</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">base_url</span> <span class="o">+</span> <span class="n">query</span> <span class="o">+</span> <span class="s2">&quot;&amp;rows=&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">max_rows</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;&amp;cursor=&quot;</span> <span class="o">+</span> <span class="n">cursor</span><span class="p">,</span>
+                         <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">timeout_sec</span><span class="p">)</span>
+        <span class="n">cursor</span> <span class="o">=</span> <span class="n">quote</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">json</span><span class="p">()[</span><span class="s1">&#39;message&#39;</span><span class="p">][</span><span class="s1">&#39;next-cursor&#39;</span><span class="p">],</span> <span class="n">safe</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">json</span><span class="p">()[</span><span class="s1">&#39;message&#39;</span><span class="p">][</span><span class="s1">&#39;items&#39;</span><span class="p">])</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+          <span class="n">keep_paging</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">r</span><span class="o">.</span><span class="n">json</span><span class="p">()[</span><span class="s1">&#39;message&#39;</span><span class="p">][</span><span class="s1">&#39;items&#39;</span><span class="p">]:</span>
+          <span class="n">dois</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">item</span><span class="p">[</span><span class="s1">&#39;DOI&#39;</span><span class="p">])</span>
+
+    <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">dois</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="ArticleDownloader.get_dois_from_journal_issn"><a class="viewcode-back" href="../../articledownloader.articledownloader.html#articledownloader.articledownloader.ArticleDownloader.get_dois_from_journal_issn">[docs]</a>  <span class="nd">@traced</span>
+  <span class="k">def</span> <span class="nf">get_dois_from_journal_issn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">issn</span><span class="p">,</span> <span class="n">rows</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">pub_after</span><span class="o">=</span><span class="mi">2000</span><span class="p">,</span> <span class="n">mailto</span><span class="o">=</span><span class="s2">&quot;null@null.com&quot;</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Grabs a set of unique DOIs based on a journal ISSN using the CrossRef API</span>
+
+<span class="sd">    :param issn: The ISSN of the journal</span>
+<span class="sd">    :type issn: str</span>
+
+<span class="sd">    :param rows: the maximum number of DOIs to find</span>
+<span class="sd">    :type rows: int</span>
+
+<span class="sd">    :param pub_after: the minimum publication year for DOIs returned</span>
+<span class="sd">    :type pub_after: int</span>
+
+<span class="sd">    :param mailto: mailto address for API</span>
+<span class="sd">    :type rows: str</span>
+
+<span class="sd">    :returns: the unique set of DOIs as a list</span>
+<span class="sd">    :rtype: list</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="n">dois</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">base_url</span> <span class="o">=</span> <span class="s1">&#39;https://api.crossref.org/journals/&#39;</span> <span class="o">+</span> <span class="n">issn</span> <span class="o">+</span> <span class="s1">&#39;/works?filter=from-pub-date:&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">pub_after</span><span class="p">)</span>
+    <span class="n">max_rows</span> <span class="o">=</span> <span class="mi">1000</span> <span class="c1">#Defined by CrossRef API</span>
+
+    <span class="n">headers</span> <span class="o">=</span> <span class="p">{</span>
+      <span class="s1">&#39;Accept&#39;</span><span class="p">:</span> <span class="s1">&#39;application/json&#39;</span><span class="p">,</span>
+      <span class="s1">&#39;User-agent&#39;</span><span class="p">:</span> <span class="s1">&#39;mailto:&#39;</span> <span class="o">+</span> <span class="n">mailto</span>
+    <span class="p">}</span>
+
+    <span class="k">if</span> <span class="n">rows</span> <span class="o">&lt;=</span> <span class="n">max_rows</span><span class="p">:</span> <span class="c1">#No multi-query needed</span>
+      <span class="n">search_url</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">base_url</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;&amp;rows=&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">rows</span><span class="p">)</span>
+      <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">search_url</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">timeout_sec</span><span class="p">)</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+
+      <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">response</span><span class="p">[</span><span class="s2">&quot;message&quot;</span><span class="p">][</span><span class="s2">&quot;items&quot;</span><span class="p">]:</span>
+        <span class="n">dois</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">item</span><span class="p">[</span><span class="s2">&quot;DOI&quot;</span><span class="p">])</span>
+
+    <span class="k">else</span><span class="p">:</span> <span class="c1">#Need to split queries</span>
+      <span class="n">cursor</span> <span class="o">=</span> <span class="s2">&quot;*&quot;</span>
+      <span class="n">keep_paging</span> <span class="o">=</span> <span class="kc">True</span>
+      <span class="k">while</span> <span class="p">(</span><span class="n">keep_paging</span><span class="p">):</span>
+        <span class="n">sleep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sleep_sec</span><span class="p">)</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">base_url</span> <span class="o">+</span> <span class="s2">&quot;&amp;rows=&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">max_rows</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;&amp;cursor=&quot;</span> <span class="o">+</span> <span class="n">cursor</span><span class="p">,</span>
+                         <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">timeout_sec</span><span class="p">)</span>
+        <span class="n">cursor</span> <span class="o">=</span> <span class="n">quote</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">json</span><span class="p">()[</span><span class="s1">&#39;message&#39;</span><span class="p">][</span><span class="s1">&#39;next-cursor&#39;</span><span class="p">],</span> <span class="n">safe</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">json</span><span class="p">()[</span><span class="s1">&#39;message&#39;</span><span class="p">][</span><span class="s1">&#39;items&#39;</span><span class="p">])</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+          <span class="n">keep_paging</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">r</span><span class="o">.</span><span class="n">json</span><span class="p">()[</span><span class="s1">&#39;message&#39;</span><span class="p">][</span><span class="s1">&#39;items&#39;</span><span class="p">]:</span>
+          <span class="n">dois</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">item</span><span class="p">[</span><span class="s1">&#39;DOI&#39;</span><span class="p">])</span>
+
+    <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">dois</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="ArticleDownloader.get_metadata_from_journal_issn"><a class="viewcode-back" href="../../articledownloader.articledownloader.html#articledownloader.articledownloader.ArticleDownloader.get_metadata_from_journal_issn">[docs]</a>  <span class="nd">@traced</span>
+  <span class="k">def</span> <span class="nf">get_metadata_from_journal_issn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">issn</span><span class="p">,</span> <span class="n">rows</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">pub_after</span><span class="o">=</span><span class="mi">2000</span><span class="p">,</span> <span class="n">mailto</span><span class="o">=</span><span class="s2">&quot;null@null.com&quot;</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Grabs metadata based on a journal ISSN using the CrossRef API</span>
+
+<span class="sd">    :param issn: The ISSN of the journal</span>
+<span class="sd">    :type issn: str</span>
+
+<span class="sd">    :param rows: the maximum number of DOIs to find</span>
+<span class="sd">    :type rows: int</span>
+
+<span class="sd">    :param pub_after: the minimum publication year for DOIs returned</span>
+<span class="sd">    :type pub_after: int</span>
+
+<span class="sd">    :param mailto: mailto address for API</span>
+<span class="sd">    :type rows: str</span>
+
+<span class="sd">    :returns: the metadata for the articles according to this ISSN</span>
+<span class="sd">    :rtype: list</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="n">metadata_records</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">base_url</span> <span class="o">=</span> <span class="s1">&#39;https://api.crossref.org/journals/&#39;</span> <span class="o">+</span> <span class="n">issn</span> <span class="o">+</span> <span class="s1">&#39;/works?filter=from-pub-date:&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">pub_after</span><span class="p">)</span>
+    <span class="n">max_rows</span> <span class="o">=</span> <span class="mi">1000</span> <span class="c1">#Defined by CrossRef API</span>
+
+    <span class="n">headers</span> <span class="o">=</span> <span class="p">{</span>
+      <span class="s1">&#39;Accept&#39;</span><span class="p">:</span> <span class="s1">&#39;application/json&#39;</span><span class="p">,</span>
+      <span class="s1">&#39;User-agent&#39;</span><span class="p">:</span> <span class="s1">&#39;mailto:&#39;</span> <span class="o">+</span> <span class="n">mailto</span>
+    <span class="p">}</span>
+
+    <span class="k">if</span> <span class="n">rows</span> <span class="o">&lt;=</span> <span class="n">max_rows</span><span class="p">:</span> <span class="c1">#No multi-query needed</span>
+      <span class="n">search_url</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">base_url</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;&amp;rows=&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">rows</span><span class="p">)</span>
+      <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">search_url</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">timeout_sec</span><span class="p">)</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+
+      <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">response</span><span class="p">[</span><span class="s2">&quot;message&quot;</span><span class="p">][</span><span class="s2">&quot;items&quot;</span><span class="p">]:</span>
+        <span class="k">try</span><span class="p">:</span>
+          <span class="n">metadata_records</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+            <span class="s2">&quot;doi&quot;</span><span class="p">:</span> <span class="n">item</span><span class="p">[</span><span class="s2">&quot;DOI&quot;</span><span class="p">],</span>
+            <span class="s2">&quot;issn&quot;</span><span class="p">:</span> <span class="n">item</span><span class="p">[</span><span class="s2">&quot;ISSN&quot;</span><span class="p">],</span>
+            <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="n">item</span><span class="p">[</span><span class="s2">&quot;title&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span>
+            <span class="s2">&quot;prefix&quot;</span><span class="p">:</span> <span class="n">item</span><span class="p">[</span><span class="s2">&quot;prefix&quot;</span><span class="p">],</span>
+            <span class="s2">&quot;journal&quot;</span><span class="p">:</span> <span class="n">item</span><span class="p">[</span><span class="s2">&quot;container-title&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span>
+            <span class="s2">&quot;publisher&quot;</span><span class="p">:</span> <span class="n">item</span><span class="p">[</span><span class="s2">&quot;publisher&quot;</span><span class="p">],</span>
+            <span class="s2">&quot;volume&quot;</span><span class="p">:</span> <span class="n">item</span><span class="p">[</span><span class="s2">&quot;volume&quot;</span><span class="p">],</span>
+            <span class="s2">&quot;issue&quot;</span><span class="p">:</span> <span class="n">item</span><span class="p">[</span><span class="s2">&quot;issue&quot;</span><span class="p">],</span>
+            <span class="s2">&quot;page&quot;</span><span class="p">:</span> <span class="n">item</span><span class="p">[</span><span class="s2">&quot;page&quot;</span><span class="p">],</span>
+          <span class="p">})</span>
+        <span class="k">except</span><span class="p">:</span>
+          <span class="k">pass</span>
+    <span class="k">else</span><span class="p">:</span> <span class="c1">#Need to split queries</span>
+      <span class="n">cursor</span> <span class="o">=</span> <span class="s2">&quot;*&quot;</span>
+      <span class="n">keep_paging</span> <span class="o">=</span> <span class="kc">True</span>
+      <span class="k">while</span> <span class="p">(</span><span class="n">keep_paging</span><span class="p">):</span>
+        <span class="n">sleep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sleep_sec</span><span class="p">)</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">base_url</span> <span class="o">+</span> <span class="s2">&quot;&amp;rows=&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">max_rows</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;&amp;cursor=&quot;</span> <span class="o">+</span> <span class="n">cursor</span><span class="p">,</span>
+                         <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">timeout_sec</span><span class="p">)</span>
+        <span class="n">cursor</span> <span class="o">=</span> <span class="n">quote</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">json</span><span class="p">()[</span><span class="s1">&#39;message&#39;</span><span class="p">][</span><span class="s1">&#39;next-cursor&#39;</span><span class="p">],</span> <span class="n">safe</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">json</span><span class="p">()[</span><span class="s1">&#39;message&#39;</span><span class="p">][</span><span class="s1">&#39;items&#39;</span><span class="p">])</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+          <span class="n">keep_paging</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">r</span><span class="o">.</span><span class="n">json</span><span class="p">()[</span><span class="s1">&#39;message&#39;</span><span class="p">][</span><span class="s1">&#39;items&#39;</span><span class="p">]:</span>
+          <span class="k">try</span><span class="p">:</span>
+            <span class="n">metadata_records</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+              <span class="s2">&quot;doi&quot;</span><span class="p">:</span> <span class="n">item</span><span class="p">[</span><span class="s2">&quot;DOI&quot;</span><span class="p">],</span>
+              <span class="s2">&quot;issn&quot;</span><span class="p">:</span> <span class="n">item</span><span class="p">[</span><span class="s2">&quot;ISSN&quot;</span><span class="p">],</span>
+              <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="n">item</span><span class="p">[</span><span class="s2">&quot;title&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span>
+              <span class="s2">&quot;prefix&quot;</span><span class="p">:</span> <span class="n">item</span><span class="p">[</span><span class="s2">&quot;prefix&quot;</span><span class="p">],</span>
+              <span class="s2">&quot;journal&quot;</span><span class="p">:</span> <span class="n">item</span><span class="p">[</span><span class="s2">&quot;container-title&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span>
+              <span class="s2">&quot;publisher&quot;</span><span class="p">:</span> <span class="n">item</span><span class="p">[</span><span class="s2">&quot;publisher&quot;</span><span class="p">],</span>
+              <span class="s2">&quot;volume&quot;</span><span class="p">:</span> <span class="n">item</span><span class="p">[</span><span class="s2">&quot;volume&quot;</span><span class="p">],</span>
+              <span class="s2">&quot;issue&quot;</span><span class="p">:</span> <span class="n">item</span><span class="p">[</span><span class="s2">&quot;issue&quot;</span><span class="p">],</span>
+              <span class="s2">&quot;page&quot;</span><span class="p">:</span> <span class="n">item</span><span class="p">[</span><span class="s2">&quot;page&quot;</span><span class="p">],</span>
+            <span class="p">})</span>
+          <span class="k">except</span><span class="p">:</span>
+            <span class="k">pass</span>
+
+    <span class="k">return</span> <span class="n">metadata_records</span></div>
+
+<div class="viewcode-block" id="ArticleDownloader.get_xml_from_doi"><a class="viewcode-back" href="../../articledownloader.articledownloader.html#articledownloader.articledownloader.ArticleDownloader.get_xml_from_doi">[docs]</a>  <span class="nd">@traced</span>
+  <span class="k">def</span> <span class="nf">get_xml_from_doi</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">doi</span><span class="p">,</span> <span class="n">writefile</span><span class="p">,</span> <span class="n">mode</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Downloads and writes an HTML article to a file, given a DOI and operating mode</span>
+
+<span class="sd">    :param doi: DOI string for the article we want to download</span>
+<span class="sd">    :type doi: str</span>
+
+<span class="sd">    :param writefile: file object to write to</span>
+<span class="sd">    :type writefile: file</span>
+
+<span class="sd">    :param mode: choose from {&#39;elsevier&#39; | &#39;aps&#39;}, depending on how we wish to access the file</span>
+<span class="sd">    :type mode: str</span>
+
+<span class="sd">    :returns: True on successful write, False otherwise</span>
+<span class="sd">    :rtype: bool</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;elsevier&#39;</span><span class="p">:</span>
+      <span class="k">try</span><span class="p">:</span>
+        <span class="n">xml_url</span><span class="o">=</span><span class="s1">&#39;https://api.elsevier.com/content/article/doi/&#39;</span> <span class="o">+</span> <span class="n">doi</span> <span class="o">+</span> <span class="s1">&#39;?view=FULL&#39;</span>
+        <span class="n">headers</span> <span class="o">=</span> <span class="p">{</span>
+          <span class="s1">&#39;X-ELS-APIKEY&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">els_api_key</span><span class="p">,</span>
+          <span class="s1">&#39;Accept&#39;</span><span class="p">:</span> <span class="s1">&#39;text/xml&#39;</span>
+        <span class="p">}</span>
+
+        <span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">xml_url</span><span class="p">,</span> <span class="n">stream</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">timeout_sec</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">200</span><span class="p">:</span>
+          <span class="k">for</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="n">r</span><span class="o">.</span><span class="n">iter_content</span><span class="p">(</span><span class="mi">2048</span><span class="p">):</span>
+            <span class="n">writefile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span>
+          <span class="k">return</span> <span class="kc">True</span>
+      <span class="k">except</span><span class="p">:</span>
+        <span class="c1"># API download limit exceeded</span>
+        <span class="k">return</span> <span class="kc">False</span>
+      <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;aps&#39;</span><span class="p">:</span>
+      <span class="k">try</span><span class="p">:</span>
+        <span class="n">xml_url</span><span class="o">=</span><span class="s1">&#39;http://harvest.aps.org/v2/journals/articles/&#39;</span> <span class="o">+</span> <span class="n">doi</span>
+        <span class="n">headers</span> <span class="o">=</span> <span class="p">{</span>
+          <span class="s1">&#39;Accept&#39;</span><span class="p">:</span> <span class="s1">&#39;text/xml&#39;</span>
+        <span class="p">}</span>
+
+        <span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">xml_url</span><span class="p">,</span> <span class="n">stream</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">timeout_sec</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">200</span><span class="p">:</span>
+          <span class="k">for</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="n">r</span><span class="o">.</span><span class="n">iter_content</span><span class="p">(</span><span class="mi">2048</span><span class="p">):</span>
+            <span class="n">writefile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span>
+          <span class="k">return</span> <span class="kc">True</span>
+      <span class="k">except</span><span class="p">:</span>
+        <span class="c1"># API download limit exceeded</span>
+        <span class="k">return</span> <span class="kc">False</span>
+      <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="k">return</span> <span class="kc">False</span></div>
+
+<div class="viewcode-block" id="ArticleDownloader.get_html_from_doi"><a class="viewcode-back" href="../../articledownloader.articledownloader.html#articledownloader.articledownloader.ArticleDownloader.get_html_from_doi">[docs]</a>  <span class="nd">@traced</span>
+  <span class="k">def</span> <span class="nf">get_html_from_doi</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">doi</span><span class="p">,</span> <span class="n">writefile</span><span class="p">,</span> <span class="n">mode</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Downloads and writes an HTML article to a file, given a DOI and operating mode</span>
+
+<span class="sd">    :param doi: DOI string for the article we want to download</span>
+<span class="sd">    :type doi: str</span>
+
+<span class="sd">    :param writefile: file object to write to</span>
+<span class="sd">    :type writefile: file</span>
+
+<span class="sd">    :param mode: choose from {&#39;elsevier&#39; | &#39;springer&#39; | &#39;acs&#39; | &#39;ecs&#39; | &#39;rsc&#39; | &#39;nature&#39; | &#39;wiley&#39; | &#39;aaas&#39; | &#39;emerald&#39;}, depending on how we wish to access the file</span>
+<span class="sd">    :type mode: str</span>
+
+<span class="sd">    :returns: True on successful write, False otherwise</span>
+<span class="sd">    :rtype: bool</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;springer&#39;</span><span class="p">:</span>
+      <span class="n">base_url</span> <span class="o">=</span> <span class="s1">&#39;http://link.springer.com/&#39;</span>
+      <span class="n">api_url</span> <span class="o">=</span> <span class="n">base_url</span> <span class="o">+</span> <span class="n">doi</span> <span class="o">+</span> <span class="s1">&#39;.html&#39;</span>
+
+      <span class="k">try</span><span class="p">:</span>
+        <span class="n">headers</span> <span class="o">=</span> <span class="p">{</span>
+          <span class="s1">&#39;Accept&#39;</span><span class="p">:</span> <span class="s1">&#39;text/html&#39;</span><span class="p">,</span>
+          <span class="s1">&#39;User-agent&#39;</span><span class="p">:</span> <span class="s1">&#39;Mozilla/5.0&#39;</span>
+        <span class="p">}</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">api_url</span><span class="p">,</span> <span class="n">stream</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">timeout_sec</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">200</span><span class="p">:</span>
+          <span class="k">for</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="n">r</span><span class="o">.</span><span class="n">iter_content</span><span class="p">(</span><span class="mi">2048</span><span class="p">):</span>
+            <span class="n">writefile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span>
+          <span class="k">return</span> <span class="kc">True</span>
+      <span class="k">except</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+      <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;wiley&#39;</span><span class="p">:</span>
+      <span class="n">base_url</span> <span class="o">=</span> <span class="s1">&#39;http://onlinelibrary.wiley.com/doi/&#39;</span>
+      <span class="n">api_url</span> <span class="o">=</span> <span class="n">base_url</span> <span class="o">+</span> <span class="n">doi</span> <span class="o">+</span> <span class="s1">&#39;/full&#39;</span>
+
+      <span class="k">try</span><span class="p">:</span>
+        <span class="n">headers</span> <span class="o">=</span> <span class="p">{</span>
+          <span class="s1">&#39;Accept&#39;</span><span class="p">:</span> <span class="s1">&#39;text/html&#39;</span><span class="p">,</span>
+          <span class="s1">&#39;User-agent&#39;</span><span class="p">:</span> <span class="s1">&#39;Mozilla/5.0&#39;</span>
+        <span class="p">}</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">api_url</span><span class="p">,</span> <span class="n">stream</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">timeout_sec</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">200</span><span class="p">:</span>
+          <span class="k">for</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="n">r</span><span class="o">.</span><span class="n">iter_content</span><span class="p">(</span><span class="mi">2048</span><span class="p">):</span>
+            <span class="n">writefile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span>
+          <span class="k">return</span> <span class="kc">True</span>
+      <span class="k">except</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+      <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;acs&#39;</span><span class="p">:</span>
+      <span class="n">base_url</span> <span class="o">=</span> <span class="s1">&#39;http://pubs.acs.org/doi/full/&#39;</span>
+      <span class="n">api_url</span> <span class="o">=</span> <span class="n">base_url</span> <span class="o">+</span> <span class="n">doi</span>
+
+      <span class="k">try</span><span class="p">:</span>
+        <span class="n">headers</span> <span class="o">=</span> <span class="p">{</span>
+          <span class="s1">&#39;Accept&#39;</span><span class="p">:</span> <span class="s1">&#39;text/html&#39;</span><span class="p">,</span>
+          <span class="s1">&#39;User-agent&#39;</span><span class="p">:</span> <span class="s1">&#39;Mozilla/5.0&#39;</span>
+        <span class="p">}</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">api_url</span><span class="p">,</span> <span class="n">stream</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">timeout_sec</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">200</span><span class="p">:</span>
+          <span class="k">for</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="n">r</span><span class="o">.</span><span class="n">iter_content</span><span class="p">(</span><span class="mi">2048</span><span class="p">):</span>
+            <span class="n">writefile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span>
+          <span class="k">return</span> <span class="kc">True</span>
+      <span class="k">except</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+      <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;emerald&#39;</span><span class="p">:</span>
+      <span class="n">base_url</span> <span class="o">=</span> <span class="s1">&#39;http://www.emeraldinsight.com/doi/full/&#39;</span>
+      <span class="n">api_url</span> <span class="o">=</span> <span class="n">base_url</span> <span class="o">+</span> <span class="n">doi</span>
+
+      <span class="k">try</span><span class="p">:</span>
+        <span class="n">headers</span> <span class="o">=</span> <span class="p">{</span>
+          <span class="s1">&#39;Accept&#39;</span><span class="p">:</span> <span class="s1">&#39;text/html&#39;</span><span class="p">,</span>
+          <span class="s1">&#39;User-agent&#39;</span><span class="p">:</span> <span class="s1">&#39;Mozilla/5.0&#39;</span>
+        <span class="p">}</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">api_url</span><span class="p">,</span> <span class="n">stream</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">timeout_sec</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">200</span><span class="p">:</span>
+          <span class="k">for</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="n">r</span><span class="o">.</span><span class="n">iter_content</span><span class="p">(</span><span class="mi">2048</span><span class="p">):</span>
+            <span class="n">writefile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span>
+          <span class="k">return</span> <span class="kc">True</span>
+      <span class="k">except</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+      <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;rsc&#39;</span><span class="p">:</span>
+      <span class="n">html_string</span> <span class="o">=</span> <span class="s1">&#39;articlehtml&#39;</span>
+      <span class="n">download_url</span> <span class="o">=</span> <span class="s1">&#39;https://doi.org/&#39;</span> <span class="o">+</span> <span class="n">doi</span>
+      <span class="n">headers</span> <span class="o">=</span> <span class="p">{</span>
+      <span class="s1">&#39;Accept&#39;</span><span class="p">:</span> <span class="s1">&#39;text/html&#39;</span><span class="p">,</span>
+      <span class="s1">&#39;User-agent&#39;</span><span class="p">:</span> <span class="s1">&#39;Mozilla/5.0&#39;</span>
+      <span class="p">}</span>
+      <span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">download_url</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">timeout_sec</span><span class="p">)</span>
+      <span class="n">url</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">url</span>
+      <span class="n">url</span> <span class="o">=</span> <span class="n">url</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;ascii&#39;</span><span class="p">)</span>
+      <span class="n">url</span> <span class="o">=</span> <span class="n">url</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span>
+      <span class="n">url</span> <span class="o">=</span> <span class="n">url</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;//&#39;</span> <span class="o">+</span> <span class="n">url</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span> <span class="o">+</span> <span class="n">url</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span> <span class="o">+</span> <span class="n">url</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span> <span class="o">+</span> <span class="n">html_string</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span> <span class="o">+</span> <span class="n">url</span><span class="p">[</span><span class="mi">6</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span> <span class="o">+</span> <span class="n">url</span><span class="p">[</span><span class="mi">7</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span> <span class="o">+</span> <span class="n">url</span><span class="p">[</span><span class="mi">8</span><span class="p">]</span>
+
+      <span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">stream</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">timeout_sec</span><span class="p">)</span>
+
+      <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">200</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+          <span class="k">for</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="n">r</span><span class="o">.</span><span class="n">iter_content</span><span class="p">(</span><span class="mi">2048</span><span class="p">):</span>
+            <span class="n">writefile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span>
+          <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">except</span><span class="p">:</span>
+          <span class="k">return</span> <span class="kc">False</span>
+
+      <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;nature&#39;</span><span class="p">:</span>
+      <span class="n">download_url</span> <span class="o">=</span> <span class="s1">&#39;https://doi.org/&#39;</span> <span class="o">+</span> <span class="n">doi</span>
+
+      <span class="n">headers</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;Accept&#39;</span><span class="p">:</span> <span class="s1">&#39;text/html&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;User-agent&#39;</span><span class="p">:</span> <span class="s1">&#39;Mozilla/5.0&#39;</span>
+      <span class="p">}</span>
+      <span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">download_url</span><span class="p">,</span> <span class="n">stream</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">timeout_sec</span><span class="p">)</span>
+      <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">200</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+          <span class="k">for</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="n">r</span><span class="o">.</span><span class="n">iter_content</span><span class="p">(</span><span class="mi">2048</span><span class="p">):</span>
+            <span class="n">writefile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span>
+          <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">except</span><span class="p">:</span>
+          <span class="k">return</span> <span class="kc">False</span>
+      <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;aaas&#39;</span><span class="p">:</span>
+
+      <span class="n">headers</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;Accept&#39;</span><span class="p">:</span> <span class="s1">&#39;text/html&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;User-agent&#39;</span><span class="p">:</span> <span class="s1">&#39;Mozilla/5.0&#39;</span>
+      <span class="p">}</span>
+
+      <span class="n">article_url</span> <span class="o">=</span> <span class="s1">&#39;https://doi.org/&#39;</span> <span class="o">+</span> <span class="n">doi</span>
+      <span class="n">resp</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">article_url</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">timeout_sec</span><span class="p">)</span>
+
+      <span class="n">download_url</span> <span class="o">=</span> <span class="n">resp</span><span class="o">.</span><span class="n">url</span> <span class="o">+</span> <span class="s1">&#39;.full&#39;</span>  <span class="c1">#Capture fulltext from redirect</span>
+
+      <span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">download_url</span><span class="p">,</span> <span class="n">stream</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">timeout_sec</span><span class="p">)</span>
+      <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">200</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+          <span class="k">for</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="n">r</span><span class="o">.</span><span class="n">iter_content</span><span class="p">(</span><span class="mi">2048</span><span class="p">):</span>
+            <span class="n">writefile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span>
+          <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">except</span><span class="p">:</span>
+          <span class="k">return</span> <span class="kc">False</span>
+      <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;ecs&#39;</span><span class="p">:</span>
+      <span class="n">headers</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;Accept&#39;</span><span class="p">:</span> <span class="s1">&#39;text/html&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;User-agent&#39;</span><span class="p">:</span> <span class="s1">&#39;Mozilla/5.0&#39;</span>
+      <span class="p">}</span>
+
+      <span class="n">article_url</span> <span class="o">=</span> <span class="s1">&#39;https://doi.org/&#39;</span> <span class="o">+</span> <span class="n">doi</span>
+      <span class="n">resp</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">article_url</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">timeout_sec</span><span class="p">)</span>
+
+      <span class="n">download_url</span> <span class="o">=</span> <span class="n">resp</span><span class="o">.</span><span class="n">url</span> <span class="o">+</span> <span class="s1">&#39;.full&#39;</span>  <span class="c1">#Capture fulltext from redirect</span>
+
+      <span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">download_url</span><span class="p">,</span> <span class="n">stream</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">timeout_sec</span><span class="p">)</span>
+      <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">200</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+          <span class="k">for</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="n">r</span><span class="o">.</span><span class="n">iter_content</span><span class="p">(</span><span class="mi">2048</span><span class="p">):</span>
+            <span class="n">writefile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span>
+          <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">except</span><span class="p">:</span>
+          <span class="k">return</span> <span class="kc">False</span>
+      <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="k">return</span> <span class="kc">False</span></div>
+
+<div class="viewcode-block" id="ArticleDownloader.get_pdf_from_doi"><a class="viewcode-back" href="../../articledownloader.articledownloader.html#articledownloader.articledownloader.ArticleDownloader.get_pdf_from_doi">[docs]</a>  <span class="nd">@traced</span>
+  <span class="k">def</span> <span class="nf">get_pdf_from_doi</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">doi</span><span class="p">,</span> <span class="n">writefile</span><span class="p">,</span> <span class="n">mode</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Downloads and writes a PDF article to a file, given a DOI and operating mode</span>
+
+<span class="sd">    :param doi: DOI string for the article we want to download</span>
+<span class="sd">    :type doi: str</span>
+
+<span class="sd">    :param writefile: file object to write to</span>
+<span class="sd">    :type writefile: file</span>
+
+<span class="sd">    :param mode: choose from {&#39;crossref&#39; | &#39;elsevier&#39; | &#39;rsc&#39; | &#39;springer&#39; | &#39;ecs&#39; | &#39;nature&#39; | &#39;acs&#39;}, depending on how we wish to access the file</span>
+<span class="sd">    :type mode: str</span>
+
+<span class="sd">    :returns: True on successful write, False otherwise</span>
+<span class="sd">    :rtype: bool</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;crossref&#39;</span><span class="p">:</span>
+      <span class="n">base_url</span> <span class="o">=</span> <span class="s1">&#39;http://api.crossref.org/works/&#39;</span>
+      <span class="n">api_url</span> <span class="o">=</span> <span class="n">base_url</span> <span class="o">+</span> <span class="n">doi</span>
+
+      <span class="n">headers</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;Accept&#39;</span><span class="p">:</span> <span class="s1">&#39;application/json&#39;</span>
+      <span class="p">}</span>
+
+      <span class="k">try</span><span class="p">:</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">api_url</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">timeout_sec</span><span class="p">)</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+        <span class="n">pdf_url</span> <span class="o">=</span> <span class="n">response</span><span class="p">[</span><span class="s1">&#39;message&#39;</span><span class="p">][</span><span class="s1">&#39;link&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;URL&#39;</span><span class="p">]</span>
+        <span class="n">app_type</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">response</span><span class="p">[</span><span class="s1">&#39;message&#39;</span><span class="p">][</span><span class="s1">&#39;link&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;content-type&#39;</span><span class="p">])</span>
+
+        <span class="k">if</span> <span class="n">app_type</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;application/pdf&#39;</span><span class="p">,</span> <span class="s1">&#39;unspecified&#39;</span><span class="p">]:</span>
+          <span class="n">headers</span><span class="p">[</span><span class="s1">&#39;Accept&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;application/pdf&#39;</span>
+          <span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">pdf_url</span><span class="p">,</span> <span class="n">stream</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">)</span>
+          <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">200</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="n">r</span><span class="o">.</span><span class="n">iter_content</span><span class="p">(</span><span class="mi">2048</span><span class="p">):</span>
+              <span class="n">writefile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">True</span>
+      <span class="k">except</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+      <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;elsevier&#39;</span><span class="p">:</span>
+      <span class="k">try</span><span class="p">:</span>
+        <span class="n">pdf_url</span><span class="o">=</span><span class="s1">&#39;http://api.elsevier.com/content/article/doi:&#39;</span> <span class="o">+</span> <span class="n">doi</span> <span class="o">+</span> <span class="s1">&#39;?view=FULL&#39;</span>
+        <span class="n">headers</span> <span class="o">=</span> <span class="p">{</span>
+          <span class="s1">&#39;X-ELS-APIKEY&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">els_api_key</span><span class="p">,</span>
+          <span class="s1">&#39;Accept&#39;</span><span class="p">:</span> <span class="s1">&#39;application/pdf&#39;</span>
+        <span class="p">}</span>
+
+        <span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">pdf_url</span><span class="p">,</span> <span class="n">stream</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">timeout_sec</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">200</span><span class="p">:</span>
+          <span class="k">for</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="n">r</span><span class="o">.</span><span class="n">iter_content</span><span class="p">(</span><span class="mi">2048</span><span class="p">):</span>
+            <span class="n">writefile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span>
+          <span class="k">return</span> <span class="kc">True</span>
+      <span class="k">except</span><span class="p">:</span>
+        <span class="c1"># API download limit exceeded</span>
+        <span class="k">return</span> <span class="kc">False</span>
+      <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;rsc&#39;</span><span class="p">:</span>
+      <span class="n">scraper</span> <span class="o">=</span> <span class="n">scrapers</span><span class="o">.</span><span class="n">RSC</span><span class="p">()</span>
+      <span class="n">scrape_url</span> <span class="o">=</span> <span class="s1">&#39;https://doi.org/&#39;</span> <span class="o">+</span> <span class="n">doi</span>
+      <span class="n">download_url</span> <span class="o">=</span> <span class="kc">None</span>
+
+      <span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">scrape_url</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">timeout_sec</span><span class="p">)</span>
+      <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">200</span><span class="p">:</span>
+        <span class="n">scraper</span><span class="o">.</span><span class="n">feed</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">scraper</span><span class="o">.</span><span class="n">download_link</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+          <span class="n">download_url</span> <span class="o">=</span> <span class="n">scraper</span><span class="o">.</span><span class="n">download_link</span>
+
+      <span class="k">if</span> <span class="n">download_url</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">headers</span> <span class="o">=</span> <span class="p">{</span>
+          <span class="s1">&#39;Accept&#39;</span><span class="p">:</span> <span class="s1">&#39;application/pdf&#39;</span>
+        <span class="p">}</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">download_url</span><span class="p">,</span> <span class="n">stream</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">timeout_sec</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">200</span><span class="p">:</span>
+          <span class="k">try</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="n">r</span><span class="o">.</span><span class="n">iter_content</span><span class="p">(</span><span class="mi">2048</span><span class="p">):</span>
+              <span class="n">writefile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">True</span>
+          <span class="k">except</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+      <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;ecs&#39;</span><span class="p">:</span>
+      <span class="n">scraper</span> <span class="o">=</span> <span class="n">scrapers</span><span class="o">.</span><span class="n">ECS</span><span class="p">()</span>
+      <span class="n">scrape_url</span> <span class="o">=</span> <span class="s1">&#39;https://doi.org/&#39;</span> <span class="o">+</span> <span class="n">doi</span>
+      <span class="n">download_url</span> <span class="o">=</span> <span class="kc">None</span>
+
+      <span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">scrape_url</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">timeout_sec</span><span class="p">)</span>
+      <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">200</span><span class="p">:</span>
+        <span class="n">scraper</span><span class="o">.</span><span class="n">feed</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">scraper</span><span class="o">.</span><span class="n">download_link</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+          <span class="n">download_url</span> <span class="o">=</span> <span class="n">scraper</span><span class="o">.</span><span class="n">download_link</span>
+
+      <span class="k">if</span> <span class="n">download_url</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">headers</span> <span class="o">=</span> <span class="p">{</span>
+          <span class="s1">&#39;Accept&#39;</span><span class="p">:</span> <span class="s1">&#39;application/pdf&#39;</span>
+        <span class="p">}</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">download_url</span><span class="p">,</span> <span class="n">stream</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">timeout_sec</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">200</span><span class="p">:</span>
+          <span class="k">try</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="n">r</span><span class="o">.</span><span class="n">iter_content</span><span class="p">(</span><span class="mi">2048</span><span class="p">):</span>
+              <span class="n">writefile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">True</span>
+          <span class="k">except</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+      <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;nature&#39;</span><span class="p">:</span>
+      <span class="n">scraper</span> <span class="o">=</span> <span class="n">scrapers</span><span class="o">.</span><span class="n">Nature</span><span class="p">()</span>
+      <span class="n">scrape_url</span> <span class="o">=</span> <span class="s1">&#39;https://doi.org/&#39;</span> <span class="o">+</span> <span class="n">doi</span>
+      <span class="n">download_url</span> <span class="o">=</span> <span class="kc">None</span>
+
+      <span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">scrape_url</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">timeout_sec</span><span class="p">)</span>
+      <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">200</span><span class="p">:</span>
+        <span class="n">scraper</span><span class="o">.</span><span class="n">feed</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">scraper</span><span class="o">.</span><span class="n">download_link</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+          <span class="n">download_url</span> <span class="o">=</span> <span class="n">scraper</span><span class="o">.</span><span class="n">download_link</span>
+
+      <span class="k">if</span> <span class="n">download_url</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">headers</span> <span class="o">=</span> <span class="p">{</span>
+          <span class="s1">&#39;Accept&#39;</span><span class="p">:</span> <span class="s1">&#39;application/pdf&#39;</span>
+        <span class="p">}</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">download_url</span><span class="p">,</span> <span class="n">stream</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">timeout_sec</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">200</span><span class="p">:</span>
+          <span class="k">try</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="n">r</span><span class="o">.</span><span class="n">iter_content</span><span class="p">(</span><span class="mi">2048</span><span class="p">):</span>
+              <span class="n">writefile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">True</span>
+          <span class="k">except</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+      <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;acs&#39;</span><span class="p">:</span>
+      <span class="n">base_url</span> <span class="o">=</span> <span class="s1">&#39;http://pubs.acs.org/doi/pdf/&#39;</span>
+      <span class="n">api_url</span> <span class="o">=</span> <span class="n">base_url</span> <span class="o">+</span> <span class="n">doi</span>
+
+      <span class="k">try</span><span class="p">:</span>
+        <span class="n">headers</span> <span class="o">=</span> <span class="p">{</span>
+          <span class="s1">&#39;Accept&#39;</span><span class="p">:</span> <span class="s1">&#39;application/pdf&#39;</span><span class="p">,</span>
+          <span class="s1">&#39;User-agent&#39;</span><span class="p">:</span> <span class="s1">&#39;Mozilla/5.0&#39;</span>
+        <span class="p">}</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">api_url</span><span class="p">,</span> <span class="n">stream</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">timeout_sec</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">200</span><span class="p">:</span>
+          <span class="k">for</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="n">r</span><span class="o">.</span><span class="n">iter_content</span><span class="p">(</span><span class="mi">2048</span><span class="p">):</span>
+            <span class="n">writefile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span>
+          <span class="k">return</span> <span class="kc">True</span>
+      <span class="k">except</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+      <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;springer&#39;</span><span class="p">:</span>
+      <span class="n">base_url</span> <span class="o">=</span> <span class="s1">&#39;http://link.springer.com/content/pdf/&#39;</span>
+      <span class="n">api_url</span> <span class="o">=</span> <span class="n">base_url</span> <span class="o">+</span> <span class="n">doi</span>
+
+      <span class="k">try</span><span class="p">:</span>
+        <span class="n">headers</span> <span class="o">=</span> <span class="p">{</span>
+          <span class="s1">&#39;Accept&#39;</span><span class="p">:</span> <span class="s1">&#39;application/pdf&#39;</span><span class="p">,</span>
+          <span class="s1">&#39;User-agent&#39;</span><span class="p">:</span> <span class="s1">&#39;Mozilla/5.0&#39;</span>
+        <span class="p">}</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">api_url</span><span class="p">,</span> <span class="n">stream</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">timeout_sec</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">200</span><span class="p">:</span>
+          <span class="k">for</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="n">r</span><span class="o">.</span><span class="n">iter_content</span><span class="p">(</span><span class="mi">2048</span><span class="p">):</span>
+            <span class="n">writefile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span>
+          <span class="k">return</span> <span class="kc">True</span>
+      <span class="k">except</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+      <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="k">return</span> <span class="kc">False</span></div>
+
+<div class="viewcode-block" id="ArticleDownloader.get_abstract_from_doi"><a class="viewcode-back" href="../../articledownloader.articledownloader.html#articledownloader.articledownloader.ArticleDownloader.get_abstract_from_doi">[docs]</a>  <span class="nd">@traced</span>
+  <span class="k">def</span> <span class="nf">get_abstract_from_doi</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">doi</span><span class="p">,</span> <span class="n">mode</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Returns abstract as a unicode string given a DOI</span>
+
+<span class="sd">    :param doi: DOI string for the article we want to grab metadata for</span>
+<span class="sd">    :type doi: str</span>
+
+<span class="sd">    :param mode: Only supports &#39;elsevier&#39; for now</span>
+<span class="sd">    :type mode: str</span>
+
+<span class="sd">    :returns: An abstract (or None on failure)</span>
+<span class="sd">    :rtype: unicode</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;elsevier&#39;</span><span class="p">:</span>
+      <span class="k">try</span><span class="p">:</span>
+        <span class="n">url</span><span class="o">=</span><span class="s1">&#39;http://api.elsevier.com/content/article/doi/&#39;</span> <span class="o">+</span> <span class="n">doi</span> <span class="o">+</span> <span class="s1">&#39;?view=FULL&#39;</span>
+
+        <span class="n">headers</span> <span class="o">=</span> <span class="p">{</span>
+          <span class="s1">&#39;X-ELS-APIKEY&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">els_api_key</span><span class="p">,</span>
+          <span class="s1">&#39;Accept&#39;</span><span class="p">:</span> <span class="s1">&#39;application/json&#39;</span>
+        <span class="p">}</span>
+
+        <span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">timeout_sec</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">200</span><span class="p">:</span>
+          <span class="n">abstract</span> <span class="o">=</span> <span class="n">unicode</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">text</span><span class="p">)[</span><span class="s1">&#39;full-text-retrieval-response&#39;</span><span class="p">][</span><span class="s1">&#39;coredata&#39;</span><span class="p">][</span><span class="s1">&#39;dc:description&#39;</span><span class="p">])</span>
+          <span class="k">return</span> <span class="n">abstract</span>
+      <span class="k">except</span><span class="p">:</span>
+        <span class="c1"># API download limit exceeded or no abstract exists</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+      <span class="k">return</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="ArticleDownloader.get_title_from_doi"><a class="viewcode-back" href="../../articledownloader.articledownloader.html#articledownloader.articledownloader.ArticleDownloader.get_title_from_doi">[docs]</a>  <span class="nd">@traced</span>
+  <span class="k">def</span> <span class="nf">get_title_from_doi</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">doi</span><span class="p">,</span> <span class="n">mode</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Returns title of an article as a unicode string given a DOI</span>
+
+<span class="sd">    :param doi: DOI string for the article we want to grab metadata for</span>
+<span class="sd">    :type doi: str</span>
+
+<span class="sd">    :param mode: Only supports &#39;crossref&#39; for now</span>
+<span class="sd">    :type mode: str</span>
+
+<span class="sd">    :returns: A title (or None on failure)</span>
+<span class="sd">    :rtype: unicode</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;crossref&#39;</span><span class="p">:</span>
+      <span class="k">try</span><span class="p">:</span>
+        <span class="n">url</span><span class="o">=</span><span class="s1">&#39;http://api.crossref.org/works/&#39;</span> <span class="o">+</span> <span class="n">doi</span>
+        <span class="n">headers</span> <span class="o">=</span> <span class="p">{</span>
+          <span class="s1">&#39;X-ELS-APIKEY&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">els_api_key</span><span class="p">,</span>
+          <span class="s1">&#39;Accept&#39;</span><span class="p">:</span> <span class="s1">&#39;application/json&#39;</span>
+        <span class="p">}</span>
+
+        <span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">timeout_sec</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">200</span><span class="p">:</span>
+          <span class="n">title</span> <span class="o">=</span> <span class="n">unicode</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">json</span><span class="p">()[</span><span class="s1">&#39;message&#39;</span><span class="p">][</span><span class="s1">&#39;title&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+          <span class="k">return</span> <span class="n">title</span>
+      <span class="k">except</span><span class="p">:</span>
+        <span class="c1"># API download limit exceeded or no title exists</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="k">return</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="ArticleDownloader.load_queries_from_csv"><a class="viewcode-back" href="../../articledownloader.articledownloader.html#articledownloader.articledownloader.ArticleDownloader.load_queries_from_csv">[docs]</a>  <span class="nd">@traced</span>
+  <span class="k">def</span> <span class="nf">load_queries_from_csv</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">csvf</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Loads a list of queries from a CSV file</span>
+
+<span class="sd">    :param csvf: file object containing a CSV file with one query per line</span>
+<span class="sd">    :type csvf: file</span>
+
+<span class="sd">    :returns: a list of queries, processed to be insertable into REST API (GET) calls</span>
+<span class="sd">    :rtype: list</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="n">csvf</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">csvreader</span> <span class="o">=</span> <span class="n">reader</span><span class="p">(</span><span class="n">csvf</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s1">&#39;,&#39;</span><span class="p">)</span>
+    <span class="n">queries</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">csvreader</span><span class="p">:</span>
+      <span class="c1">#Build search query (assume 1st column is queries)</span>
+      <span class="n">query</span> <span class="o">=</span> <span class="n">quote</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+      <span class="n">query</span> <span class="o">=</span> <span class="n">query</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+      <span class="n">query</span> <span class="o">=</span> <span class="s1">&#39;+&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
+
+      <span class="n">final_query</span> <span class="o">=</span> <span class="n">query</span>
+      <span class="n">queries</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">final_query</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">queries</span></div></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, MIT DMSE.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'1.0',
+            LANGUAGE:'None',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+
+  
+
+  <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

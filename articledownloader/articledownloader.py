@@ -661,7 +661,7 @@ class ArticleDownloader:
     :param mode: Only supports 'crossref' for now
     :type mode: str
 
-    :returns: An abstract (or None on failure)
+    :returns: A title (or None on failure)
     :rtype: unicode
     '''
 
