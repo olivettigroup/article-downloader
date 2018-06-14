@@ -196,7 +196,10 @@ class ArticleDownloader:
               "title": item["title"][0],
               "prefix": item["prefix"],
               "journal": item["container-title"][0],
-              "publisher": item["publisher"]
+              "publisher": item["publisher"],
+              "volume": item["volume"],
+              "issue": item["issue"],
+              "page": item["page"],
             })
           except:
             pass
