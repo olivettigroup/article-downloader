@@ -166,7 +166,7 @@ class ArticleDownloader:
         try:
           metadata_records.append({
             "doi": item["DOI"],
-            "issn": item["ISSN"],
+            "issn": item["ISSN"][0],
             "title": item["title"][0],
             "prefix": item["prefix"],
             "journal": item["container-title"][0],
@@ -174,6 +174,9 @@ class ArticleDownloader:
             "volume": item["volume"],
             "issue": item["issue"],
             "page": item["page"],
+            "year": item['published-print']['date-parts'][0][0],
+            "num_references": item['references-count'],
+            "times_cited": item['is-referenced-by-count']
           })
         except:
           pass
@@ -192,7 +195,7 @@ class ArticleDownloader:
           try:
             metadata_records.append({
               "doi": item["DOI"],
-              "issn": item["ISSN"],
+              "issn": item["ISSN"][0],
               "title": item["title"][0],
               "prefix": item["prefix"],
               "journal": item["container-title"][0],
@@ -200,6 +203,9 @@ class ArticleDownloader:
               "volume": item["volume"],
               "issue": item["issue"],
               "page": item["page"],
+              "year": item['published-print']['date-parts'][0][0],
+              "num_references": item['references-count'],
+              "times_cited": item['is-referenced-by-count']
             })
           except:
             pass
