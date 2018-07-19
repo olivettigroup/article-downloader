@@ -129,6 +129,40 @@ class ArticleDownloader:
     return list(set(dois))
 
   @traced
+  def get_metadata_from_doi(self, doi, mailto="null@null.com"):
+    base_url = 'https://api.crossref.org/works/' + str(doi)
+
+    headers = {
+      'Accept': 'application/json',
+      'User-agent': 'mailto:' + mailto
+    }
+
+    search_url = str(base_url)
+    response = requests.get(search_url, headers=headers, timeout=self.timeout_sec).json()
+
+    item = response["message"]
+    metadata_record = None
+    try:
+      metadata_record = {
+        "doi": item["DOI"],
+        "issn": item["ISSN"][0],
+        "title": item["title"][0],
+        "prefix": item["prefix"],
+        "journal": item["container-title"][0],
+        "publisher": item["publisher"],
+        "volume": item["volume"],
+        "issue": item["issue"],
+        "page": item["page"],
+        "year": item['published-print']['date-parts'][0][0],
+        "num_references": item['references-count'],
+        "times_cited": item['is-referenced-by-count']
+      }
+    except:
+      pass
+
+    return metadata_record
+
+  @traced
   def get_metadata_from_journal_issn(self, issn, rows=500, pub_after=2000, mailto="null@null.com"):
     '''
     Grabs metadata based on a journal ISSN using the CrossRef API
