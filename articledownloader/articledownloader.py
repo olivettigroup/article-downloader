@@ -143,6 +143,26 @@ class ArticleDownloader:
     item = response["message"]
     metadata_record = None
     try:
+      if "volume" in item: 
+        volume = item["volume"]
+      else:
+        volume = None
+
+      if "published-print" in item: 
+        year = item['published-print']['date-parts'][0][0] 
+      else:
+        year = None
+
+      if "issue" in item: 
+        issue = item["issue"]
+      else:
+        issue = None
+
+      if "page" in item: 
+        page = item["page"]
+      else:
+        page = None
+
       metadata_record = {
         "doi": item["DOI"],
         "issn": item["ISSN"][0],
@@ -150,10 +170,10 @@ class ArticleDownloader:
         "prefix": item["prefix"],
         "journal": item["container-title"][0],
         "publisher": item["publisher"],
-        "volume": item["volume"],
-        "issue": item["issue"],
-        "page": item["page"],
-        "year": item['published-print']['date-parts'][0][0],
+        "volume": volume,
+        "issue": issue,
+        "page": page,
+        "year": year,
         "num_references": item['references-count'],
         "times_cited": item['is-referenced-by-count']
       }
@@ -198,6 +218,26 @@ class ArticleDownloader:
 
       for item in response["message"]["items"]:
         try:
+          if "volume" in item: 
+            volume = item["volume"]
+          else:
+            volume = None
+
+          if "published-print" in item: 
+            year = item['published-print']['date-parts'][0][0] 
+          else:
+            year = None
+
+          if "issue" in item: 
+            issue = item["issue"]
+          else:
+            issue = None
+
+          if "page" in item: 
+            page = item["page"]
+          else:
+            page = None
+
           metadata_records.append({
             "doi": item["DOI"],
             "issn": item["ISSN"][0],
@@ -205,10 +245,10 @@ class ArticleDownloader:
             "prefix": item["prefix"],
             "journal": item["container-title"][0],
             "publisher": item["publisher"],
-            "volume": item["volume"],
-            "issue": item["issue"],
-            "page": item["page"],
-            "year": item['published-print']['date-parts'][0][0],
+            "volume": volume,
+            "issue": issue,
+            "page": page,
+            "year": year,
             "num_references": item['references-count'],
             "times_cited": item['is-referenced-by-count']
           })
@@ -227,6 +267,26 @@ class ArticleDownloader:
 
         for item in r.json()['message']['items']:
           try:
+            if "volume" in item: 
+              volume = item["volume"]
+            else:
+              volume = None
+
+            if "published-print" in item: 
+              year = item['published-print']['date-parts'][0][0] 
+            else:
+              year = None
+
+            if "issue" in item: 
+              issue = item["issue"]
+            else:
+              issue = None
+
+            if "page" in item: 
+              page = item["page"]
+            else:
+              page = None
+
             metadata_records.append({
               "doi": item["DOI"],
               "issn": item["ISSN"][0],
@@ -234,10 +294,10 @@ class ArticleDownloader:
               "prefix": item["prefix"],
               "journal": item["container-title"][0],
               "publisher": item["publisher"],
-              "volume": item["volume"],
-              "issue": item["issue"],
-              "page": item["page"],
-              "year": item['published-print']['date-parts'][0][0],
+              "volume": volume,
+              "issue": issue,
+              "page": page,
+              "year": year,
               "num_references": item['references-count'],
               "times_cited": item['is-referenced-by-count']
             })
