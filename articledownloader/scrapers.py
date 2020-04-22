@@ -2,8 +2,7 @@
 These scraping implementations are used only for detecting PDF direct download links as necessary
 '''
 
-
-from HTMLParser import HTMLParser
+from html.parser import HTMLParser
 
 class RSC(HTMLParser):
   '''
