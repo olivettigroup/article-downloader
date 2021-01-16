@@ -9,7 +9,7 @@ Exposes a top-level `ArticleDownloader` class which provides methods for retriev
 **Important Note**: This package is only intended to be used for publisher-approved text-mining activities! The code in this repository only provides an interface to existing publisher APIs and web routes; *you need your own set of API keys / permissions to download articles from any source that isn't open-access*.
 
 ## Full API Documentation
-You can read the documentation for this repository [here](http://article-downloader.readthedocs.io/en/latest/articledownloader.articledownloader.html).
+You can read the documentation for this repository [here](https://article-downloader.readthedocs.io/en/latest/articledownloader.articledownloader/).
 
 ## Installation
 Use `pip install articledownloader`. If you don't have `pip` installed, you could also download the ZIP containing all the files in this repo and manually import the `ArticleDownloader` class into your own Python code.
