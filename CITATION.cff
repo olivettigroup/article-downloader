@@ -2,22 +2,21 @@
 # Visit https://bit.ly/cffinit to generate yours today!
 
 cff-version: 1.2.0
-title: MatKG
+title: Article Downloader
 message: >-
   If you use this software, please cite it using the
   metadata from this file.
 type: software
 authors:
-  - given-names: 'Vineeth '
-    family-names: Venugopal
-    email: vinven7@gmail.com
+  - given-names: 'Kim'
+    family-names: Edward
+    email: elsao@mit.edu
     affiliation: MIT
-    orcid: 'https://orcid.org/0000-0002-6253-1953'
 identifiers:
   - type: url
-    value: 'https://github.com/olivettigroup/MatKG'
-repository-code: 'https://github.com/olivettigroup/MatKG'
-abstract: The Codebase for MatKG
+    value: 'https://github.com/olivettigroup/article-downloader'
+repository-code: 'https://github.com/olivettigroup/article-downloader'
+abstract: The Codebase for Article Downloader
 keywords:
-  - 'NLP, Materials Science, Knowledge Graph'
-version: '1.2'
+  - 'NLP, Materials Science, Scientific Data'
+version: '1.0'
