@@ -1,0 +1,23 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: MatKG
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: 'Vineeth '
+    family-names: Venugopal
+    email: vinven7@gmail.com
+    affiliation: MIT
+    orcid: 'https://orcid.org/0000-0002-6253-1953'
+identifiers:
+  - type: url
+    value: 'https://github.com/olivettigroup/MatKG'
+repository-code: 'https://github.com/olivettigroup/MatKG'
+abstract: The Codebase for MatKG
+keywords:
+  - 'NLP, Materials Science, Knowledge Graph'
+version: '1.2'
